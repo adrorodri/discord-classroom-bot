@@ -1,0 +1,6 @@
+dist/
+node_modules/
+.idea/
+src/firebase-config.ts
+src/service-account.json
+package-lock.json
