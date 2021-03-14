@@ -1,6 +1,6 @@
 import {Observable, Subject} from "rxjs";
 import * as eris from "eris";
-import {Message, PrivateChannel, TextableChannel} from "eris";
+import {EmbedField, Message, MessageContent, PrivateChannel, TextableChannel} from "eris";
 import {fromPromise} from "rxjs/internal-compatibility";
 import {mapTo} from "rxjs/operators";
 
@@ -12,6 +12,7 @@ export class DiscordController {
         this.client = new eris.Client(token);
         this.initClientEvents();
     }
+
     private initClientEvents() {
 
         this.client.on('ready', () => {
@@ -37,12 +38,44 @@ export class DiscordController {
         return this.messagesSubject;
     }
 
+    getChannelNameForId(channelId: string): string {
+        return this.client.getChannel(channelId).mention
+    }
+
     public sendMessageToChannel(channel: TextableChannel, message: string): Observable<Message> {
         return fromPromise(channel.createMessage(message));
     }
 
+    public sendMessageToChannelId(channelId: string, message: string): Observable<Message> {
+        return fromPromise((this.client.getChannel(channelId) as TextableChannel).createMessage(message));
+    }
+
+    public sendEmbedMessageToChannelId(channelId: string, color: number, title: string, messageFields: EmbedField[]): Observable<Message> {
+        const embedMessage: MessageContent = {
+            embed: {
+                title: title,
+                color: color,
+                timestamp: new Date(),
+                fields: messageFields,
+            }
+        };
+        return fromPromise((this.client.getChannel(channelId) as TextableChannel).createMessage(embedMessage));
+    }
+
     public sendPrivateMessageToUser(channel: PrivateChannel, message: string): Observable<Message> {
         return fromPromise(channel.createMessage(message));
+    }
+
+    public sendPrivateEmbedMessageToUser(channel: PrivateChannel, color: number, title: string, messageFields: EmbedField[]): Observable<Message> {
+        const embedMessage: MessageContent = {
+            embed: {
+                title: title,
+                color: color,
+                timestamp: new Date(),
+                fields: messageFields,
+            }
+        };
+        return fromPromise(channel.createMessage(embedMessage));
     }
 
     public sendReactionToMessage(message: Message, emoji: string): Observable<Message> {

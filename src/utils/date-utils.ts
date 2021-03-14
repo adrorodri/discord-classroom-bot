@@ -10,10 +10,14 @@ export class DateUtils {
     static isBetween(startTime: string, endTime: string): boolean {
         const from = new Date();
         from.setHours(Number(startTime.split(':')[0]));
-        from.setHours(Number(startTime.split(':')[1]));
+        from.setMinutes(Number(startTime.split(':')[1]));
+        from.setMilliseconds(0);
+        from.setSeconds(0);
         const to = new Date();
         to.setHours(Number(endTime.split(':')[0]));
-        to.setHours(Number(endTime.split(':')[1]));
+        to.setMinutes(Number(endTime.split(':')[1]));
+        to.setMilliseconds(0);
+        to.setSeconds(0);
         const now = new Date();
         return from.getTime() < now.getTime() && now.getTime() < to.getTime();
     }

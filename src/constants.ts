@@ -1,5 +1,12 @@
+import {Session} from "./model/session";
+
 export const CHANNELS = {
-    SESSIONS: 'asistencia'
+    SESSIONS: {
+        ID: '818988068799250453'
+    },
+    VOICE_CLASSES: {
+        ID: '818985333525184522'
+    }
 }
 
 export const COMMANDS = {
@@ -33,7 +40,18 @@ export const EMOJIS = {
     PENCIL: '✏️'
 }
 
+export const COLORS = {
+    SUCCESS: 0x00ff00,
+    INFO: 0x0000ff,
+    ERROR: 0xff0000
+}
+
 export const TIMES = {
-    START_TIME: '07:15',
-    END_TIME: '9:15'
+    START_TIME: '12:07',
+    END_TIME: '12:00'
+}
+
+export const DEFAULT_SESSION: Session = {
+    attendance: [],
+    resources: []
 }

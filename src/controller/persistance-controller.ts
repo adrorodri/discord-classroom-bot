@@ -5,10 +5,10 @@ import 'firebase/database';
 import {firebaseConfig} from "../firebase-config";
 import {fromPromise} from "rxjs/internal-compatibility";
 import {firestore} from "firebase-admin/lib/firestore";
-import {Session} from "../model/session";
+import {Resource, Session} from "../model/session";
+import {NotRegisteredError} from "../errors/not-registered.error";
 import admin = require('firebase-admin');
 import WriteResult = firestore.WriteResult;
-import {NotRegisteredError} from "../errors/not-registered.error";
 
 export class PersistanceController {
     private app = firebase.initializeApp(firebaseConfig);
@@ -71,10 +71,11 @@ export class PersistanceController {
         );
     }
 
-    createNewSession(date: string): Observable<WriteResult> {
+    createNewSession(date: string, resources: Resource[]): Observable<WriteResult> {
         const sessionDocRef = this.db.collection(this.KEYS.SESSIONS).doc(date);
         return fromPromise(sessionDocRef.create({
-            attendance: []
+            attendance: [],
+            resources: resources
         }));
     }
 
