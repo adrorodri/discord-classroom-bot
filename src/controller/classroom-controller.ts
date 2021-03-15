@@ -1,13 +1,14 @@
 import {DateUtils} from "../utils/date-utils";
 import {Message, PrivateChannel} from "eris";
 import {EMPTY, Observable, of, throwError} from "rxjs";
-import {CHANNELS, COLORS, COMMANDS, DEFAULT_SESSION, EMOJIS, MESSAGES, TIMES} from "../constants";
+import {CHANNELS, COLORS, COMMANDS, DEFAULT_SESSION, EMOJIS, MESSAGES, TIMES, USERS} from "../constants";
 import {catchError, map, mapTo, switchMap} from "rxjs/operators";
 import {PersistanceController} from "./persistance-controller";
 import {DiscordController} from "./discord-controller";
 import {Resource, Session} from "../model/session";
 import {AttendanceInvalidError} from "../errors/attendance-invalid.error";
 import {CronController} from "./cron-controller";
+import {Activity} from "../model/activity";
 
 export class ClassroomController {
     private persistance: PersistanceController;
@@ -20,17 +21,20 @@ export class ClassroomController {
         this.cron.addTask(CronController.getCronTimeForHourMinute(TIMES.START_TIME), () => {
             this.getTodaysSession().pipe(
                 catchError(error => of(DEFAULT_SESSION)),
-                switchMap(session => this.discord.sendEmbedMessageToChannelId(
-                    CHANNELS.SESSIONS.ID,
-                    COLORS.INFO,
-                    'La clase esta por comenzar',
-                    [...session.resources, {
-                        name: 'Unirse al canal:',
-                        value: this.discord.getChannelNameForId(CHANNELS.VOICE_CLASSES.ID)
-                    }, {
-                        name: 'Mandar el attendance a:',
-                        value: this.discord.getChannelNameForId(CHANNELS.SESSIONS.ID)
-                    }]))
+                switchMap(session => {
+                    const resources = session.resources || [];
+                    return this.discord.sendEmbedMessageToChannelId(
+                        CHANNELS.SESSIONS.ID,
+                        COLORS.INFO,
+                        'La clase esta por comenzar',
+                        [...resources, {
+                            name: 'Unirse al canal:',
+                            value: this.discord.getChannelNameForId(CHANNELS.VOICE_CLASSES.ID)
+                        }, {
+                            name: 'Mandar el attendance a:',
+                            value: this.discord.getChannelNameForId(CHANNELS.SESSIONS.ID)
+                        }])
+                })
             ).subscribe(() => {
             }, error => {
                 console.error(error);
@@ -47,18 +51,24 @@ export class ClassroomController {
     processMessage(message: Message): Observable<any> {
         const channel = message.channel;
         const channelId = message.channel.id;
-        const content = message.content.split(" ")[0];
-        const args = message.content.split(" ").slice(1);
+        const command = message.content.split(" ", 1)[0];
+        const args = message.content.split(command + '')[1].match(/(\w+\|(".+"))|[^\s]+/g) || [];
         const discordId = message.author.id;
         const isValidChannelId = (channel: string): boolean => {
             const isDmMessage = message.channel instanceof PrivateChannel;
             return (channelId === channel || isDmMessage);
         }
-        const isValidCommand = (command: string): boolean => {
-            return content.toLowerCase().startsWith(command);
+        const isValidCommand = (commandToSearch: string): boolean => {
+            return command.toLowerCase().startsWith(commandToSearch);
+        }
+        const isValidAuthor = (): boolean => {
+            return USERS.ADMIN.some(admin => admin.id === discordId);
+        }
+        const handleSuccess = (message: Message, emoji: string = EMOJIS.CHECK): Observable<any> => {
+            return this.discord.sendReactionToMessage(message, emoji)
         }
         const handleError = (error): Observable<any> => {
-            console.warn('Operation Error', error);
+            console.warn('Operation Error', error.message);
             return this.discord.sendErrorMessage(message, error).pipe(
                 switchMap(() => this.discord.sendReactionToMessage(message, EMOJIS.ERROR))
             );
@@ -69,7 +79,7 @@ export class ClassroomController {
                 return this.registerDiscordId(discordId, universityId).pipe(
                     switchMap(() => this.discord.getDMChannelForDiscordId(discordId)),
                     switchMap(channel => this.discord.sendPrivateMessageToUser(channel, 'Registrado correctamente!')),
-                    switchMap(() => this.discord.sendReactionToMessage(message, EMOJIS.CHECK)),
+                    switchMap(() => handleSuccess(message)),
                     catchError(handleError)
                 );
             } else {
@@ -78,19 +88,33 @@ export class ClassroomController {
         } else if (isValidChannelId(CHANNELS.SESSIONS.ID) && isValidCommand(COMMANDS.ATTENDANCE)) {
             return this.validateCurrentTime(TIMES.START_TIME, TIMES.END_TIME).pipe(
                 switchMap(() => this.attendanceForDiscordId(discordId)),
-                switchMap(() => this.discord.sendReactionToMessage(message, EMOJIS.CHECK)),
+                switchMap(() => handleSuccess(message)),
                 catchError(handleError)
             )
-        } else if (isValidChannelId(CHANNELS.SESSIONS.ID) && isValidCommand(COMMANDS.NEW_SESSION)) {
+        } else if (isValidChannelId(CHANNELS.SESSIONS.ID) && isValidCommand(COMMANDS.NEW_SESSION) && isValidAuthor()) {
             const date = args[0];
             const resources = args.slice(1);
             return this.createNewSession(date, resources).pipe(
-                switchMap(() => this.discord.sendReactionToMessage(message, EMOJIS.CHECK)),
+                switchMap(() => handleSuccess(message)),
+                catchError(handleError)
+            )
+        } else if (isValidChannelId(CHANNELS.SESSIONS.ID) && isValidCommand(COMMANDS.NEW_ACTIVITY) && isValidAuthor()) {
+            const name = args[0];
+            const date = args[1];
+            const resources = args.slice(2);
+            return this.createNewActivity(name, date, resources).pipe(
+                switchMap(activity => this.discord.sendEmbedMessageToChannelId(
+                    CHANNELS.ACTIVITIES.ID,
+                    COLORS.SUCCESS,
+                    `New Activity!\n${activity.name}\nDue Date: ${activity.date}`,
+                    activity.resources)
+                ),
+                switchMap(() => handleSuccess(message)),
                 catchError(handleError)
             )
         } else if (isValidChannelId(CHANNELS.SESSIONS.ID) && isValidCommand(COMMANDS.HELP)) {
             return this.discord.sendMessageToChannel(channel, MESSAGES.HELP).pipe(
-                switchMap(() => this.discord.sendReactionToMessage(message, EMOJIS.THUMBS_UP))
+                switchMap(() => handleSuccess(message, EMOJIS.THUMBS_UP))
             );
         } else if (isValidChannelId(CHANNELS.SESSIONS.ID) && isValidCommand(COMMANDS.TODAY)) {
             return this.getTodaysSession().pipe(
@@ -125,7 +149,7 @@ export class ClassroomController {
         return this.persistance.putRegisteredStudent(discordId, universityId).pipe(mapTo(true));
     }
 
-    private createNewSession = (date: string, resources: string[] = []): Observable<any> => {
+    private createNewSession = (date: string, resources: string[] = []): Observable<Session> => {
         const parsedResources = resources.map(resource => {
             return <Resource>{
                 name: resource.split("|")[0],
@@ -133,5 +157,15 @@ export class ClassroomController {
             }
         });
         return this.persistance.createNewSession(date, parsedResources);
+    }
+
+    private createNewActivity = (name: string, date: string, resources: string[] = []): Observable<Activity> => {
+        const parsedResources = resources.map(resource => {
+            return <Resource>{
+                name: resource.split("|")[0],
+                value: resource.split("|")[1]
+            }
+        });
+        return this.persistance.createNewActivity(name, date, parsedResources);
     }
 }

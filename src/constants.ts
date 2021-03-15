@@ -6,7 +6,16 @@ export const CHANNELS = {
     },
     VOICE_CLASSES: {
         ID: '818985333525184522'
+    },
+    ACTIVITIES: {
+        ID: '818984004568350726'
     }
+}
+
+export const USERS = {
+    ADMIN: [
+        {id: '818983033838370867'}
+    ]
 }
 
 export const COMMANDS = {
@@ -47,8 +56,8 @@ export const COLORS = {
 }
 
 export const TIMES = {
-    START_TIME: '12:07',
-    END_TIME: '12:00'
+    START_TIME: '20:36',
+    END_TIME: '20:37'
 }
 
 export const DEFAULT_SESSION: Session = {

@@ -1,5 +1,5 @@
 import {Observable} from "rxjs";
-import {map, switchMap, tap} from "rxjs/operators";
+import {map, mapTo, switchMap, tap} from "rxjs/operators";
 import firebase from 'firebase/app';
 import 'firebase/database';
 import {firebaseConfig} from "../firebase-config";
@@ -9,6 +9,7 @@ import {Resource, Session} from "../model/session";
 import {NotRegisteredError} from "../errors/not-registered.error";
 import admin = require('firebase-admin');
 import WriteResult = firestore.WriteResult;
+import {Activity} from "../model/activity";
 
 export class PersistanceController {
     private app = firebase.initializeApp(firebaseConfig);
@@ -16,7 +17,8 @@ export class PersistanceController {
 
     private KEYS = {
         USERS: 'users',
-        SESSIONS: 'sessions'
+        SESSIONS: 'sessions',
+        ACTIVITIES: 'activities'
     }
 
     constructor(private classId) {
@@ -71,12 +73,23 @@ export class PersistanceController {
         );
     }
 
-    createNewSession(date: string, resources: Resource[]): Observable<WriteResult> {
+    createNewSession(date: string, resources: Resource[]): Observable<Session> {
         const sessionDocRef = this.db.collection(this.KEYS.SESSIONS).doc(date);
-        return fromPromise(sessionDocRef.create({
+        const sessionObj: Session = {
             attendance: [],
             resources: resources
-        }));
+        };
+        return fromPromise(sessionDocRef.create(sessionObj)).pipe(mapTo(sessionObj));
+    }
+
+    createNewActivity(name: string, date: string, resources: Resource[]): Observable<Activity> {
+        const activityDocRef = this.db.collection(this.KEYS.ACTIVITIES).doc(date);
+        const activityObj: Activity = {
+            name: name,
+            date: date,
+            resources: resources
+        };
+        return fromPromise(activityDocRef.create(activityObj)).pipe(mapTo(activityObj));
     }
 
     getSessionForDate(today: string): Observable<Session> {
