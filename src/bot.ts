@@ -2,12 +2,13 @@ import {DiscordController} from "./controller/discord-controller";
 import {ClassroomController} from "./controller/classroom-controller";
 import {catchError, retry, switchMap} from "rxjs/operators";
 import {of} from "rxjs";
+import {Config} from "./model/config";
 
 class Bot {
     private discord = new DiscordController(this.botToken);
-    private controller = new ClassroomController(this.classId, this.discord);
+    private controller = new ClassroomController(this.config, this.discord);
 
-    constructor(private botToken: string, private classId: string) {
+    constructor(private botToken: string, private config: Config) {
         this.discord.start().pipe(
             switchMap(() => this.discord.subscribeToMessages()),
             switchMap(message => this.controller.processMessage(message)),
@@ -27,4 +28,4 @@ if (!process.argv || process.argv.length < 2) {
     throw new Error('No token provided');
 }
 
-const bot = new Bot(process.argv[2], "progra-3-2021");
+const bot = new Bot(process.argv[2], require("bot-config.json") as Config);

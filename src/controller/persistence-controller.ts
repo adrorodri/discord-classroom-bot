@@ -11,7 +11,7 @@ import admin = require('firebase-admin');
 import WriteResult = firestore.WriteResult;
 import {Activity} from "../model/activity";
 
-export class PersistanceController {
+export class PersistenceController {
     private app = firebase.initializeApp(firebaseConfig);
     private db: firestore.Firestore;
 
