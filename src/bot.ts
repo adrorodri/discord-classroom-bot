@@ -3,6 +3,7 @@ import {ClassroomController} from "./controller/classroom-controller";
 import {catchError, retry, switchMap} from "rxjs/operators";
 import {of} from "rxjs";
 import {Config} from "./model/config";
+import {config} from "./bot-config";
 
 class Bot {
     private discord = new DiscordController(this.botToken);
@@ -27,5 +28,4 @@ class Bot {
 if (!process.argv || process.argv.length < 2) {
     throw new Error('No token provided');
 }
-
-const bot = new Bot(process.argv[2], require("bot-config.json") as Config);
+const bot = new Bot(process.argv[2], config);

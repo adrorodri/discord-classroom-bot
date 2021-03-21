@@ -8,6 +8,6 @@ export class CronController {
     public static getCronTimeForHourMinute(hourMinute: string): string {
         const hour = hourMinute.split(':')[0];
         const minute = hourMinute.split(':')[1];
-        return `${minute} ${hour} * * *`;
+        return `${minute} ${hour} * * 1-5`;
     }
 }

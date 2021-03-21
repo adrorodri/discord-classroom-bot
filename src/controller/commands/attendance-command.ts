@@ -14,7 +14,8 @@ export class AttendanceCommand {
                 private config: Config) {
     }
 
-    execute(message: Message, discordId: string, args: string[]): Observable<boolean> {
+    execute(message: Message, args: string[]): Observable<boolean> {
+        const discordId = message.author.id;
         return this.validateCurrentTime(this.config.classes[0].start_time, this.config.classes[0].end_time).pipe(
             switchMap(() => this.attendanceForDiscordId(discordId)),
             switchMap(() => handleSuccess(this.discord, message)),

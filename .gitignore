@@ -3,4 +3,5 @@ node_modules/
 .idea/
 src/firebase-config.ts
 src/service-account.json
+src/bot-config.ts
 package-lock.json

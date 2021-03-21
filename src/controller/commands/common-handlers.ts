@@ -14,3 +14,7 @@ export const handleError = (discord: DiscordController, message: Message, error)
         switchMap(() => discord.sendReactionToMessage(message, EMOJIS.ERROR))
     );
 }
+
+export const handleErrorWithoutMessage = (error) => {
+    console.warn('Operation Error', error.message);
+}

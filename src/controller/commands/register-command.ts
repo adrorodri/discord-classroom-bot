@@ -4,11 +4,13 @@ import {PersistenceController} from "../persistence-controller";
 import {handleError, handleSuccess} from "./common-handlers";
 import {DiscordController} from "../discord-controller";
 import {Message} from "eris";
+import {Config} from "../../model/config";
 
 export class RegisterCommand {
-    constructor(private persistence: PersistenceController, private discord: DiscordController) {
+    constructor(private persistence: PersistenceController, private discord: DiscordController, private config: Config) {
     }
-    execute(message: Message, discordId: string, args: string[]): Observable<boolean> {
+    execute(message: Message, args: string[]): Observable<boolean> {
+        const discordId = message.author.id;
         const universityId = args[1];
         if (universityId) {
             return this.registerDiscordId(discordId, universityId).pipe(

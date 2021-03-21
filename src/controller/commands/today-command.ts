@@ -1,26 +1,42 @@
 import {catchError, map, mapTo, switchMap} from "rxjs/operators";
-import {EMPTY, Observable} from "rxjs";
+import {Observable, of} from "rxjs";
 import {PersistenceController} from "../persistence-controller";
-import {handleError, handleSuccess} from "./common-handlers";
 import {DiscordController} from "../discord-controller";
 import {Message} from "eris";
 import {Session} from "../../model/session";
 import {DateUtils} from "../../utils/date-utils";
+import {COLORS, DEFAULT_SESSION} from "../../constants";
 
 export class TodayCommand {
     constructor(private persistence: PersistenceController, private discord: DiscordController) {
     }
-    execute(message: Message, args: string[]): Observable<boolean> {
+
+    executeFromMessage(message: Message, args: string[]): Observable<boolean> {
         const channel = message.channel;
         return this.getTodaysSession().pipe(
-            map(session => JSON.stringify(session)),
-            switchMap((session) => this.discord.sendMessageToChannel(channel, session)),
+            switchMap((session) => {
+                return session.resources && session.resources.length ?
+                    this.discord.sendEmbedMessageToChannelId(
+                        channel.id,
+                        COLORS.INFO,
+                        'Hoy:',
+                        session.resources
+                    ) :
+                    this.discord.sendMessageToChannelId(channel.id, 'No existen sesiones registradas para hoy');
+            }),
             mapTo(true)
         );
     }
 
+    executeWithoutMessage(): Observable<Session> {
+        return this.getTodaysSession();
+    }
+
     private getTodaysSession = (): Observable<Session> => {
         const today = DateUtils.getTodayAsString();
-        return this.persistence.getSessionForDate(today);
+        return this.persistence.getSessionForDate(today).pipe(
+            map(session => session || DEFAULT_SESSION),
+            catchError(error => of(DEFAULT_SESSION)),
+        );
     }
 }
