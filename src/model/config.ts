@@ -1,4 +1,5 @@
 export interface Config {
+    "bot_token": string,
     "teacher": {
         "discordId": string
     },
