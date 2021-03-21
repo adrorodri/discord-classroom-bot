@@ -1,11 +1,11 @@
-import {catchError, map, mapTo, switchMap} from "rxjs/operators";
-import {Observable, of} from "rxjs";
+import {mapTo, switchMap} from "rxjs/operators";
+import {Observable} from "rxjs";
 import {PersistenceController} from "../persistence-controller";
 import {DiscordController} from "../discord-controller";
 import {Message} from "eris";
 import {Session} from "../../model/session";
 import {DateUtils} from "../../utils/date-utils";
-import {COLORS, DEFAULT_SESSION} from "../../constants";
+import {COLORS} from "../../constants";
 
 export class TodayCommand {
     constructor(private persistence: PersistenceController, private discord: DiscordController) {
@@ -34,9 +34,6 @@ export class TodayCommand {
 
     private getTodaysSession = (): Observable<Session> => {
         const today = DateUtils.getTodayAsString();
-        return this.persistence.getSessionForDate(today).pipe(
-            map(session => session || DEFAULT_SESSION),
-            catchError(error => of(DEFAULT_SESSION)),
-        );
+        return this.persistence.getSessionForDate(today);
     }
 }

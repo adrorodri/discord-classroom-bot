@@ -1,10 +1,9 @@
-import {Session} from "./model/session";
-
 export const COMMANDS = {
     REGISTER: 'register',
     ATTENDANCE: 'attendance',
     NEW_SESSION: 'new-session',
     NEW_ACTIVITY: 'new-activity',
+    MY_ABSENCES: 'my-absences',
     PRESENT_ACTIVITY: 'present-activity',
     TODAY: 'today',
     ABSENCES: 'absences',
@@ -35,9 +34,4 @@ export const COLORS = {
     SUCCESS: 0x00ff00,
     INFO: 0x0000ff,
     ERROR: 0xff0000
-}
-
-export const DEFAULT_SESSION: Session = {
-    attendance: [],
-    resources: []
 }

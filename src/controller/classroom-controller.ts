@@ -1,7 +1,7 @@
 import {Message, PrivateChannel} from "eris";
-import {EMPTY, Observable, of} from "rxjs";
-import {COMMANDS, DEFAULT_SESSION} from "../constants";
-import {catchError, switchMap} from "rxjs/operators";
+import {EMPTY, Observable} from "rxjs";
+import {COMMANDS} from "../constants";
+import {switchMap} from "rxjs/operators";
 import {PersistenceController} from "./persistence-controller";
 import {DiscordController} from "./discord-controller";
 import {CronController} from "./cron-controller";
@@ -14,6 +14,7 @@ import {HelpCommand} from "./commands/help-command";
 import {TodayCommand} from "./commands/today-command";
 import {SendClassNotificationsCommand} from "./commands/send-class-notifications-command";
 import {handleErrorWithoutMessage} from "./commands/common-handlers";
+import {MyAbsencesCommand} from "./commands/my-absences-command";
 
 export class ClassroomController {
     private persistence: PersistenceController = new PersistenceController(this.config.classes[0].code);
@@ -27,6 +28,7 @@ export class ClassroomController {
     private helpCommand = new HelpCommand(this.discord);
     private todayCommand = new TodayCommand(this.persistence, this.discord);
     private sendClassNotifications = new SendClassNotificationsCommand(this.persistence, this.discord, this.config);
+    private myAbcencesCommand = new MyAbsencesCommand(this.persistence, this.discord, this.config);
 
     constructor(private config: Config, private discord: DiscordController) {
         this.cron.addTask(CronController.getCronTimeForHourMinute(this.config.classes[0].start_time), () => {
@@ -59,7 +61,9 @@ export class ClassroomController {
         } else if (isValidChannelId(this.config.channels.attendance) && isValidCommand(COMMANDS.NEW_SESSION)) {
             return this.newSessionCommand.execute(message, args);
         } else if (isValidChannelId(this.config.channels.attendance) && isValidCommand(COMMANDS.NEW_ACTIVITY)) {
-            return this.newActivityCommand.execute(message, args);
+            return this.newSessionCommand.execute(message, args);
+        } else if (isValidChannelId(this.config.channels.attendance) && isValidCommand(COMMANDS.MY_ABSENCES)) {
+            return this.myAbcencesCommand.execute(message, args);
         } else if (isValidChannelId(this.config.channels.attendance) && isValidCommand(COMMANDS.HELP)) {
             return this.helpCommand.execute(message, args);
         } else if (isValidChannelId(this.config.channels.attendance) && isValidCommand(COMMANDS.TODAY)) {

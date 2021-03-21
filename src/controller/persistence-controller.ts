@@ -7,9 +7,10 @@ import {fromPromise} from "rxjs/internal-compatibility";
 import {firestore} from "firebase-admin/lib/firestore";
 import {Resource, Session} from "../model/session";
 import {NotRegisteredError} from "../errors/not-registered.error";
+import {Activity} from "../model/activity";
+import {ClassUser} from "../model/class-user";
 import admin = require('firebase-admin');
 import WriteResult = firestore.WriteResult;
-import {Activity} from "../model/activity";
 
 export class PersistenceController {
     private app = firebase.initializeApp(firebaseConfig);
@@ -42,18 +43,19 @@ export class PersistenceController {
         }));
     }
 
+    getUniversityIdFromDiscordId = (discordId): Observable<string> => {
+        const docRef = this.db.collection(this.KEYS.USERS).where('discordId', '==', discordId);
+        return fromPromise(docRef.get()).pipe(
+            tap(queryResult => {
+                if (queryResult.empty) {
+                    throw new NotRegisteredError();
+                }
+            }),
+            map(queryResult => queryResult.docs[0].id)
+        );
+    }
+
     setAttendanceForDiscordId = (discordId: string, date: string): Observable<any> => {
-        const getUniversityIdFromDiscordId = (discordId): Observable<string> => {
-            const docRef = this.db.collection(this.KEYS.USERS).where('discordId', '==', discordId);
-            return fromPromise(docRef.get()).pipe(
-                tap(queryResult => {
-                    if (queryResult.empty) {
-                        throw new NotRegisteredError();
-                    }
-                }),
-                map(queryResult => queryResult.docs[0].id)
-            );
-        }
         const addAttendanceToUser = (universityId): Observable<WriteResult> => {
             const userDocRef = this.db.collection(this.KEYS.USERS).doc(universityId);
             return fromPromise(userDocRef.update({
@@ -66,7 +68,7 @@ export class PersistenceController {
                 attendance: admin.firestore.FieldValue.arrayUnion(universityId)
             }));
         }
-        return getUniversityIdFromDiscordId(discordId).pipe(
+        return this.getUniversityIdFromDiscordId(discordId).pipe(
             switchMap(universityId => addAttendanceToUser(universityId).pipe(
                 switchMap(() => addAttendanceToSession(universityId))
             ))
@@ -76,6 +78,7 @@ export class PersistenceController {
     createNewSession(date: string, resources: Resource[]): Observable<Session> {
         const sessionDocRef = this.db.collection(this.KEYS.SESSIONS).doc(date);
         const sessionObj: Session = {
+            date: date,
             attendance: [],
             resources: resources
         };
@@ -95,5 +98,23 @@ export class PersistenceController {
     getSessionForDate(today: string): Observable<Session> {
         const sessionDocRef = this.db.collection(this.KEYS.SESSIONS).doc(today);
         return fromPromise(sessionDocRef.get()).pipe(map(snapshot => snapshot.data() as Session));
+    }
+
+    getAllSessions(): Observable<Session[]> {
+        const sessionDocRef = this.db.collection(this.KEYS.SESSIONS);
+        return fromPromise(sessionDocRef.get()).pipe(map(snapshot => snapshot.docs.map(doc => doc.data() as Session)));
+    }
+
+    getAttendanceForDiscordId(discordId: string): Observable<string[]> {
+        const getAttendanceForUniversityId = (universityId) => {
+            const userDocRef = this.db.collection(this.KEYS.USERS).doc(universityId);
+            return fromPromise(userDocRef.get()).pipe(
+                map(snapshot => snapshot.data() as ClassUser),
+                map(classUser => classUser.attendance)
+            );
+        }
+        return this.getUniversityIdFromDiscordId(discordId).pipe(
+            switchMap(universityId => getAttendanceForUniversityId(universityId))
+        );
     }
 }
