@@ -1,26 +1,32 @@
 export const COMMANDS = {
-    REGISTER: 'register',
-    ATTENDANCE: 'attendance',
-    NEW_SESSION: 'new-session',
-    NEW_ACTIVITY: 'new-activity',
-    MY_ABSENCES: 'my-absences',
-    PRESENT_ACTIVITY: 'present-activity',
-    TODAY: 'today',
-    ABSENCES: 'absences',
-    GRADES: 'grades',
-    HELP: 'help'
+    REGISTER: '-register',
+    ATTENDANCE: '-attendance',
+    NEW_SESSION: '-new-session',
+    NEW_ACTIVITY: '-new-activity',
+    PARTICIPATION: '-participation',
+    MY_ABSENCES: '-my-absences',
+    PRESENT_ACTIVITY: '-present-activity',
+    TODAY: '-today',
+    ABSENCES: '-absences',
+    GRADES: '-grades',
+    HELP: '-help'
 }
 
 export const MESSAGES = {
-    HELP: 'Commands:' +
-        '\n\n register <Unviersity-Id>' +
-        '\n attendance ' +
-        '\n new-activity' +
-        '\n present-activity' +
-        '\n today' +
-        '\n absences' +
-        '\n grades' +
-        '\n help'
+    HELP_PUBLIC: 'Commands:' +
+        `\n\n ${COMMANDS.REGISTER} <Unviersity-Id>` +
+        `\n ${COMMANDS.ATTENDANCE}` +
+        `\n ${COMMANDS.PARTICIPATION}` +
+        `\n ${COMMANDS.MY_ABSENCES}` +
+        `\n ${COMMANDS.TODAY}` +
+        `\n ${COMMANDS.HELP}`,
+
+    HELP_ADMIN: 'Commands:' +
+        `\n\n ${COMMANDS.NEW_SESSION}` +
+        `\n ${COMMANDS.NEW_ACTIVITY}` +
+        `\n ${COMMANDS.TODAY}` +
+        `\n ${COMMANDS.GRADES}` +
+        `\n ${COMMANDS.HELP}`,
 }
 
 export const EMOJIS = {

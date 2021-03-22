@@ -6,7 +6,7 @@ import {DiscordController} from "../discord-controller";
 import {Message} from "eris";
 import {Config} from "../../model/config";
 
-export class RegisterCommand {
+export class RegisterGradeCommand {
     constructor(private persistence: PersistenceController, private discord: DiscordController, private config: Config) {
     }
     execute(message: Message, args: string[]): Observable<boolean> {

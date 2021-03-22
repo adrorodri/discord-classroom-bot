@@ -1,7 +1,7 @@
 import {catchError, mapTo, switchMap} from "rxjs/operators";
 import {EMPTY, Observable, of, throwError} from "rxjs";
 import {PersistenceController} from "../persistence-controller";
-import {handleError, handleSuccess} from "./common-handlers";
+import {handleError, handleSuccess, validateAuthorIsAdmin} from "./common-handlers";
 import {DiscordController} from "../discord-controller";
 import {Message} from "eris";
 import {COLORS} from "../../constants";
@@ -14,20 +14,12 @@ export class NewActivityCommand {
     constructor(private persistence: PersistenceController, private discord: DiscordController, private config: Config) {
     }
 
-    private validateAuthor = (discordId: string): Observable<boolean> => {
-        if(discordId === this.config.teacher.discordId) {
-            return of(true);
-        } else {
-            return throwError(new UnauthorizedError())
-        }
-    }
-
     execute(message: Message, args: string[]): Observable<boolean> {
         const name = args[0];
         const date = args[1];
         const resources = args.slice(2);
         const discordId = message.author.id;
-        return this.validateAuthor(discordId).pipe(
+        return validateAuthorIsAdmin(this.config, discordId).pipe(
             switchMap(() => this.createNewActivity(name, date, resources)),
             switchMap(activity => this.discord.sendEmbedMessageToChannelId(
                 this.config.channels.activities,

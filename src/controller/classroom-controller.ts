@@ -15,6 +15,7 @@ import {TodayCommand} from "./commands/today-command";
 import {SendClassNotificationsCommand} from "./commands/send-class-notifications-command";
 import {handleErrorWithoutMessage} from "./commands/common-handlers";
 import {MyAbsencesCommand} from "./commands/my-absences-command";
+import {ParticipationCommand} from "./commands/participation-command";
 
 export class ClassroomController {
     private persistence: PersistenceController = new PersistenceController(this.config.classes[0].code);
@@ -25,10 +26,11 @@ export class ClassroomController {
     private attendanceCommand = new AttendanceCommand(this.persistence, this.discord, this.config);
     private newSessionCommand = new NewSessionCommand(this.persistence, this.discord, this.config);
     private newActivityCommand = new NewActivityCommand(this.persistence, this.discord, this.config);
-    private helpCommand = new HelpCommand(this.discord);
+    private participationCommand = new ParticipationCommand(this.persistence, this.discord, this.config);
+    private helpCommand = new HelpCommand(this.discord, this.config);
     private todayCommand = new TodayCommand(this.persistence, this.discord);
     private sendClassNotifications = new SendClassNotificationsCommand(this.persistence, this.discord, this.config);
-    private myAbcencesCommand = new MyAbsencesCommand(this.persistence, this.discord, this.config);
+    private myAbsencesCommand = new MyAbsencesCommand(this.persistence, this.discord, this.config);
 
     constructor(private config: Config, private discord: DiscordController) {
         this.cron.addTask(CronController.getCronTimeForHourMinute(this.config.classes[0].start_time), () => {
@@ -45,28 +47,33 @@ export class ClassroomController {
 
     processMessage(message: Message): Observable<any> {
         const channelId = message.channel.id;
+        const channel = message.channel;
         const command = message.content.split(" ", 1)[0];
         const args = message.content.split(command + '')[1].match(/(\w+\|(".+"))|[^\s]+/g) || [];
+        const isPrivate = (): boolean => {
+            return channel instanceof PrivateChannel;
+        }
         const isValidChannelId = (channel: string): boolean => {
-            const isDmMessage = message.channel instanceof PrivateChannel;
-            return (channelId === channel || isDmMessage);
+            return (channelId === channel);
         }
         const isValidCommand = (commandToSearch: string): boolean => {
             return command.toLowerCase().startsWith(commandToSearch);
         }
-        if (isValidChannelId(this.config.channels.attendance) && isValidCommand(COMMANDS.REGISTER)) {
+        if ((isValidChannelId(this.config.channels.attendance) || isPrivate()) && isValidCommand(COMMANDS.REGISTER)) {
             return this.registerCommand.execute(message, args);
         } else if (isValidChannelId(this.config.channels.attendance) && isValidCommand(COMMANDS.ATTENDANCE)) {
             return this.attendanceCommand.execute(message, args);
-        } else if (isValidChannelId(this.config.channels.attendance) && isValidCommand(COMMANDS.NEW_SESSION)) {
+        } else if (isPrivate() && isValidCommand(COMMANDS.NEW_SESSION)) {
             return this.newSessionCommand.execute(message, args);
-        } else if (isValidChannelId(this.config.channels.attendance) && isValidCommand(COMMANDS.NEW_ACTIVITY)) {
-            return this.newSessionCommand.execute(message, args);
-        } else if (isValidChannelId(this.config.channels.attendance) && isValidCommand(COMMANDS.MY_ABSENCES)) {
-            return this.myAbcencesCommand.execute(message, args);
-        } else if (isValidChannelId(this.config.channels.attendance) && isValidCommand(COMMANDS.HELP)) {
+        } else if (isPrivate() && isValidCommand(COMMANDS.NEW_ACTIVITY)) {
+            return this.newActivityCommand.execute(message, args);
+        } else if (isValidChannelId(this.config.channels.participations) && isValidCommand(COMMANDS.PARTICIPATION)) {
+            return this.participationCommand.execute(message, args);
+        } else if (isPrivate() && isValidCommand(COMMANDS.MY_ABSENCES)) {
+            return this.myAbsencesCommand.execute(message, args);
+        } else if (isValidCommand(COMMANDS.HELP)) {
             return this.helpCommand.execute(message, args);
-        } else if (isValidChannelId(this.config.channels.attendance) && isValidCommand(COMMANDS.TODAY)) {
+        } else if (isValidCommand(COMMANDS.TODAY)) {
             return this.todayCommand.executeFromMessage(message, args);
         } else {
             return EMPTY;

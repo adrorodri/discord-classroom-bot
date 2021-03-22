@@ -6,6 +6,7 @@ export interface Config {
     "channels": {
         "attendance": string,
         "activities": string,
+        "participations": string,
         "main_voice": string
     },
     "classes": [

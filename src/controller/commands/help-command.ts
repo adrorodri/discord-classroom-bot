@@ -1,20 +1,19 @@
-import {catchError, mapTo, switchMap} from "rxjs/operators";
-import {EMPTY, Observable} from "rxjs";
-import {PersistenceController} from "../persistence-controller";
-import {handleError, handleSuccess} from "./common-handlers";
+import {switchMap} from "rxjs/operators";
+import {Observable} from "rxjs";
+import {handleSuccess, isAuthorAdmin} from "./common-handlers";
 import {DiscordController} from "../discord-controller";
 import {Message} from "eris";
-import {COLORS, EMOJIS, MESSAGES} from "../../constants";
-import {Activity} from "../../model/activity";
-import {Resource} from "../../model/session";
+import {EMOJIS, MESSAGES} from "../../constants";
 import {Config} from "../../model/config";
 
 export class HelpCommand {
-    constructor(private discord: DiscordController) {
+    constructor(private discord: DiscordController, private config: Config) {
     }
+
     execute(message: Message, args: string[]): Observable<boolean> {
         const channel = message.channel;
-        return this.discord.sendMessageToChannel(channel, MESSAGES.HELP).pipe(
+        const discordId = message.author.id;
+        return this.discord.sendMessageToChannel(channel, isAuthorAdmin(this.config,discordId) ? MESSAGES.HELP_ADMIN : MESSAGES.HELP_PUBLIC).pipe(
             switchMap(() => handleSuccess(this.discord, message, EMOJIS.THUMBS_UP))
         );
     }
