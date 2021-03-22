@@ -15,22 +15,23 @@ export class NewSessionCommand {
 
     execute(message: Message, args: string[]): Observable<boolean> {
         const date = args[0] === 'today' ? DateUtils.getTodayAsString() : args[0];
-        const resources = args.slice(1);
+        const name = args[1];
+        const resources = args.slice(2);
         const discordId = message.author.id;
         return validateAuthorIsAdmin(this.config, discordId).pipe(
-            switchMap(() => this.createNewSession(date, resources)),
+            switchMap(() => this.createNewSession(name, date, resources)),
             switchMap(() => handleSuccess(this.discord, message)),
             catchError(error => handleError(this.discord, message, error))
         )
     }
 
-    private createNewSession = (date: string, resources: string[] = []): Observable<Session> => {
+    private createNewSession = (name: string, date: string, resources: string[] = []): Observable<Session> => {
         const parsedResources = resources.map(resource => {
             return <Resource>{
                 name: resource.split("|")[0],
                 value: resource.split("|")[1]
             }
         });
-        return this.persistence.createNewSession(date, parsedResources);
+        return this.persistence.createNewSession(name, date, parsedResources);
     }
 }

@@ -15,12 +15,11 @@ export class TodayCommand {
         const channel = message.channel;
         return this.getTodaysSession().pipe(
             switchMap((session) => {
-                return session.resources && session.resources.length ?
-                    this.discord.sendEmbedMessageToChannelId(
-                        channel.id,
-                        COLORS.INFO,
-                        'Hoy:',
-                        session.resources
+                return session ? this.discord.sendEmbedMessageToChannelId(
+                    channel.id,
+                    COLORS.INFO,
+                    `Sesion de hoy ${DateUtils.getTodayAsString()}: ${session.name}`,
+                    session.resources
                     ) :
                     this.discord.sendMessageToChannelId(channel.id, 'No existen sesiones registradas para hoy');
             }),

@@ -1,5 +1,6 @@
 export interface Session {
     date: string,
+    name: string,
     attendance: string[],
     participation: string[],
     resources: Resource[]

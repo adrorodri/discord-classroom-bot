@@ -29,6 +29,7 @@ export class PersistenceController {
         },
         SESSIONS: {
             key: 'sessions',
+            name: 'name',
             date: 'date',
             attendance: 'attendance',
             participations: 'participations',
@@ -116,13 +117,14 @@ export class PersistenceController {
         );
     }
 
-    createNewSession(date: string, resources: Resource[]): Observable<Session> {
+    createNewSession(name: string, date: string, resources: Resource[]): Observable<Session> {
         const sessionDocRef = this.db.collection(this.KEYS.SESSIONS.key).doc(date);
         const sessionObj = {
+            [this.KEYS.SESSIONS.name]: name,
             [this.KEYS.SESSIONS.date]: date,
             [this.KEYS.SESSIONS.attendance]: [],
             [this.KEYS.SESSIONS.resources]: resources
-        } as unknown as Session;
+        } as any as Session;
         return fromPromise(sessionDocRef.create(sessionObj)).pipe(mapTo(sessionObj));
     }
 
