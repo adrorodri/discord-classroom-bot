@@ -16,6 +16,7 @@ import {SendClassNotificationsCommand} from "./commands/send-class-notifications
 import {handleErrorWithoutMessage} from "./commands/common-handlers";
 import {MyAbsencesCommand} from "./commands/my-absences-command";
 import {ParticipationCommand} from "./commands/participation-command";
+import {DateUtils} from "../utils/date-utils";
 
 export class ClassroomController {
     private persistence: PersistenceController = new PersistenceController(this.config.classes[0].code);
@@ -35,12 +36,22 @@ export class ClassroomController {
     constructor(private config: Config, private discord: DiscordController) {
         this.cron.addTask(CronController.getCronTimeForHourMinute(this.config.classes[0].start_time), () => {
             this.todayCommand.executeWithoutMessage().pipe(
-                switchMap(session => this.sendClassNotifications.executeStartClass(session.resources))
+                switchMap(session => this.sendClassNotifications.sendStartClass(session.resources))
             ).subscribe(() => {
             }, handleErrorWithoutMessage);
         });
         this.cron.addTask(CronController.getCronTimeForHourMinute(this.config.classes[0].end_time), () => {
-            this.sendClassNotifications.executeEndClass().subscribe(() => {
+            this.sendClassNotifications.sendEndClass().subscribe(() => {
+            }, handleErrorWithoutMessage);
+        });
+
+        const attendanceWarning = DateUtils.getTimeXMinutesEarlierAsString(this.config.classes[0].attendance_end_time, 5);
+        this.cron.addTask(CronController.getCronTimeForHourMinute(attendanceWarning), () => {
+            this.sendClassNotifications.sendWarningAttendance(5).subscribe(() => {
+            }, handleErrorWithoutMessage);
+        });
+        this.cron.addTask(CronController.getCronTimeForHourMinute(this.config.classes[0].attendance_end_time), () => {
+            this.sendClassNotifications.sendEndAttendance().subscribe(() => {
             }, handleErrorWithoutMessage);
         });
     }

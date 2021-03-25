@@ -12,7 +12,7 @@ export class SendClassNotificationsCommand {
                 private config: Config) {
     }
 
-    executeStartClass(resources: Resource[] = []): Observable<boolean> {
+    sendStartClass(resources: Resource[] = []): Observable<boolean> {
         return this.discord.sendEmbedMessageToChannelId(
             this.config.channels.attendance,
             COLORS.INFO,
@@ -26,11 +26,29 @@ export class SendClassNotificationsCommand {
             }]).pipe(mapTo(true))
     }
 
-    executeEndClass(): Observable<boolean> {
+    sendEndClass(): Observable<boolean> {
         return this.discord.sendEmbedMessageToChannelId(
             this.config.channels.attendance,
             COLORS.INFO,
             'La clase termino',
+            []
+        ).pipe(mapTo(true));
+    }
+
+    sendWarningAttendance(minutes: number): Observable<boolean> {
+        return this.discord.sendEmbedMessageToChannelId(
+            this.config.channels.attendance,
+            COLORS.SUCCESS,
+            `El registro de attendance esta por terminar (${minutes} minutos).`,
+            []
+        ).pipe(mapTo(true));
+    }
+
+    sendEndAttendance(): Observable<boolean> {
+        return this.discord.sendEmbedMessageToChannelId(
+            this.config.channels.attendance,
+            COLORS.SUCCESS,
+            'El registro de attendance terminó.',
             []
         ).pipe(mapTo(true));
     }

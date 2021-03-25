@@ -16,7 +16,8 @@ export class AttendanceCommand {
 
     execute(message: Message, args: string[]): Observable<boolean> {
         const discordId = message.author.id;
-        return this.validateCurrentTime(this.config.classes[0].start_time, this.config.classes[0].end_time).pipe(
+        return this.validateCurrentTime(this.config.classes[0].start_time, this.config.classes[0].attendance_end_time).pipe(
+            switchMap(() => this.validateUserStatus(discordId, this.config.guildId)),
             switchMap(() => this.attendanceForDiscordId(discordId)),
             switchMap(() => handleSuccess(this.discord, message)),
             catchError(error => handleError(this.discord, message, error))
@@ -35,5 +36,9 @@ export class AttendanceCommand {
         } else {
             return throwError(new AttendanceInvalidError())
         }
+    }
+
+    private validateUserStatus = (discordId: string, guildId: string): Observable<boolean> => {
+        return this.discord.validateIsUserOnlineFromDesktop(discordId, guildId);
     }
 }

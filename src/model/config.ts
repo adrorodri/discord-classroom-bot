@@ -3,6 +3,7 @@ export interface Config {
     "teacher": {
         "discordId": string
     },
+    "guildId": string,
     "channels": {
         "attendance": string,
         "activities": string,
@@ -14,6 +15,7 @@ export interface Config {
             "name": string,
             "code": string,
             "start_time": string,
+            "attendance_end_time": string,
             "end_time": string
         }
     ]

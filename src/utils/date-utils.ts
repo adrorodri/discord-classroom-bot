@@ -21,4 +21,15 @@ export class DateUtils {
         const now = new Date();
         return from.getTime() < now.getTime() && now.getTime() < to.getTime();
     }
+
+    static getTimeXMinutesEarlierAsString(time: string, minutesBefore: number) {
+        const msPerMinute = 60000;
+        const from = new Date();
+        from.setHours(Number(time.split(':')[0]));
+        from.setMinutes(Number(time.split(':')[1]));
+        from.setMilliseconds(0);
+        from.setSeconds(0);
+        const then = new Date(from.getTime() - (minutesBefore * msPerMinute));
+        return `${String(then.getHours()).padStart(2, '0')}:${String(then.getMinutes()).padStart(2, '0')}`;
+    }
 }
