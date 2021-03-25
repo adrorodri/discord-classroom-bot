@@ -1,4 +1,4 @@
-import {catchError, switchMap} from "rxjs/operators";
+import {catchError, switchMap, tap} from "rxjs/operators";
 import {Observable, of, throwError} from "rxjs";
 import {PersistenceController} from "../persistence-controller";
 import {handleError, handleSuccess} from "./common-handlers";
@@ -7,6 +7,7 @@ import {Message} from "eris";
 import {DateUtils} from "../../utils/date-utils";
 import {AttendanceInvalidError} from "../../errors/attendance-invalid.error";
 import {Config} from "../../model/config";
+import {AttendanceInvalidCodeError} from "../../errors/attendance-invalid-code.error";
 
 export class AttendanceCommand {
     constructor(private persistence: PersistenceController,
@@ -14,10 +15,12 @@ export class AttendanceCommand {
                 private config: Config) {
     }
 
-    execute(message: Message, args: string[]): Observable<boolean> {
+    execute(message: Message, args: string[] = []): Observable<boolean> {
         const discordId = message.author.id;
+        const attendanceCode = args[0];
         return this.validateCurrentTime(this.config.classes[0].start_time, this.config.classes[0].attendance_end_time).pipe(
             switchMap(() => this.validateUserStatus(discordId, this.config.guildId)),
+            switchMap(() => this.validateAttendanceCode(attendanceCode)),
             switchMap(() => this.attendanceForDiscordId(discordId)),
             switchMap(() => handleSuccess(this.discord, message)),
             catchError(error => handleError(this.discord, message, error))
@@ -27,6 +30,17 @@ export class AttendanceCommand {
     private attendanceForDiscordId = (discordId: string): Observable<any> => {
         const today = DateUtils.getTodayAsString();
         return this.persistence.setAttendanceForDiscordId(discordId, today);
+    }
+
+    private validateAttendanceCode = (code: string): Observable<any> => {
+        const today = DateUtils.getTodayAsString();
+        return this.persistence.getSessionForDate(today).pipe(
+            tap(session => {
+                if (session.attendanceCode !== code) {
+                    throw new AttendanceInvalidCodeError();
+                }
+            })
+        );
     }
 
     private validateCurrentTime = (start: string, end: string): Observable<any> => {

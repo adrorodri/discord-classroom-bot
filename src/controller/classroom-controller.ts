@@ -17,6 +17,7 @@ import {handleErrorWithoutMessage} from "./commands/common-handlers";
 import {MyAbsencesCommand} from "./commands/my-absences-command";
 import {ParticipationCommand} from "./commands/participation-command";
 import {DateUtils} from "../utils/date-utils";
+import {SendTeacherNotificationsCommand} from "./commands/send-teacher-notifications-command";
 
 export class ClassroomController {
     private persistence: PersistenceController = new PersistenceController(this.config.classes[0].code);
@@ -31,12 +32,15 @@ export class ClassroomController {
     private helpCommand = new HelpCommand(this.discord, this.config);
     private todayCommand = new TodayCommand(this.persistence, this.discord);
     private sendClassNotifications = new SendClassNotificationsCommand(this.persistence, this.discord, this.config);
+    private sendTeacherNotificationsCommand = new SendTeacherNotificationsCommand(this.persistence, this.discord, this.config);
     private myAbsencesCommand = new MyAbsencesCommand(this.persistence, this.discord, this.config);
 
     constructor(private config: Config, private discord: DiscordController) {
         this.cron.addTask(CronController.getCronTimeForHourMinute(this.config.classes[0].start_time), () => {
             this.todayCommand.executeWithoutMessage().pipe(
-                switchMap(session => this.sendClassNotifications.sendStartClass(session.resources))
+                switchMap(session => this.sendClassNotifications.sendStartClass(session.resources).pipe(
+                    switchMap(() => this.sendTeacherNotificationsCommand.sendStartClass(session))
+                ))
             ).subscribe(() => {
             }, handleErrorWithoutMessage);
         });
@@ -70,9 +74,9 @@ export class ClassroomController {
         const isValidCommand = (commandToSearch: string): boolean => {
             return command.toLowerCase().startsWith(commandToSearch);
         }
-        if ((isValidChannelId(this.config.channels.attendance) || isPrivate()) && isValidCommand(COMMANDS.REGISTER)) {
+        if (isPrivate() && isValidCommand(COMMANDS.REGISTER)) {
             return this.registerCommand.execute(message, args);
-        } else if (isValidChannelId(this.config.channels.attendance) && isValidCommand(COMMANDS.ATTENDANCE)) {
+        } else if (isPrivate() && isValidCommand(COMMANDS.ATTENDANCE)) {
             return this.attendanceCommand.execute(message, args);
         } else if (isPrivate() && isValidCommand(COMMANDS.NEW_SESSION)) {
             return this.newSessionCommand.execute(message, args);

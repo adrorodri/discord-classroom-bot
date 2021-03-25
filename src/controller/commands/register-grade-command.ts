@@ -15,7 +15,7 @@ export class RegisterGradeCommand {
         if (universityId) {
             return this.registerDiscordId(discordId, universityId).pipe(
                 switchMap(() => this.discord.getDMChannelForDiscordId(discordId)),
-                switchMap(channel => this.discord.sendPrivateMessageToUser(channel, 'Registrado correctamente!')),
+                switchMap(channelId => this.discord.sendMessageToChannelId(channelId, 'Registrado correctamente!')),
                 switchMap(() => handleSuccess(this.discord, message)),
                 catchError(error => handleError(this.discord, message, error))
             );

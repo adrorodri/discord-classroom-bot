@@ -1,15 +1,27 @@
 import {Observable, of, Subject, throwError} from "rxjs";
 import * as eris from "eris";
-import {EmbedField, Member, Message, MessageContent, PrivateChannel, Relationship, TextableChannel} from "eris";
+import {
+    EmbedField,
+    Emoji,
+    Member,
+    Message,
+    MessageContent,
+    PossiblyUncachedMessage,
+    Relationship,
+    TextableChannel
+} from "eris";
 import {fromPromise} from "rxjs/internal-compatibility";
 import {mapTo} from "rxjs/operators";
 import {InvalidUserStatusError} from "../errors/invalid-user-status.error";
 import {Config} from "../model/config";
+import {NotRegisteredError} from "../errors/not-registered.error";
 
 export class DiscordController {
     private client: eris.Client;
     private messagesSubject: Subject<Message> = new Subject<Message>();
+    private reactionsSubject: Subject<{ message: PossiblyUncachedMessage, emoji: Emoji, member: Member | { id: string } }> = new Subject();
     private membersStatus: Map<string, boolean> = new Map<string, boolean>();
+    private privateDMChannels: Map<string, string> = new Map<string, string>();
 
     constructor(config: Config) {
         this.client = new eris.Client(config.bot_token);
@@ -20,9 +32,10 @@ export class DiscordController {
 
         this.client.on('ready', () => {
             console.log('Connected and ready.');
-            this.client.guilds.get(config.guildId)?.members?.forEach(member => {
+            this.client.guilds.get(config.guildId)?.members?.filter(member => !member.user.bot)?.forEach(member => {
                 console.log(member.id, JSON.stringify(member.clientStatus));
                 this.updateMemberStatus(member);
+                this.updateMemberDMChannel(member);
             })
         });
 
@@ -36,9 +49,24 @@ export class DiscordController {
             }
         });
 
+
+        this.client.on('messageReactionAdd', (msg, emoji, member) => {
+            if (msg.id !== this.client.user.id) {
+                this.reactionsSubject.next({
+                    message: msg,
+                    emoji: emoji,
+                    member: member
+                });
+            }
+        });
+
         this.client.on('presenceUpdate', (member, oldPresence) => {
             console.log(member.id, JSON.stringify(member.clientStatus));
-            this.updateMemberStatus(member)
+            this.updateMemberStatus(member);
+        });
+
+        this.client.on('guildMemberAdd', (guild, member) => {
+            this.updateMemberDMChannel(member);
         });
     }
 
@@ -50,12 +78,24 @@ export class DiscordController {
         );
     }
 
+    private updateMemberDMChannel = async (member: Member) => {
+        const dmChannel = await this.client.getDMChannel(member.id);
+        this.privateDMChannels.set(
+            member.id,
+            dmChannel.id
+        );
+    }
+
     public start(): Observable<any> {
         return fromPromise(this.client.connect());
     }
 
     public subscribeToMessages(): Observable<Message> {
         return this.messagesSubject;
+    }
+
+    public subscribeToReactions(): Observable<{ message: PossiblyUncachedMessage, emoji: Emoji, member: Member | { id: string } }> {
+        return this.reactionsSubject;
     }
 
     getChannelNameForId(channelId: string): string {
@@ -82,32 +122,21 @@ export class DiscordController {
         return fromPromise((this.client.getChannel(channelId) as TextableChannel).createMessage(embedMessage));
     }
 
-    public sendPrivateMessageToUser(channel: PrivateChannel, message: string): Observable<Message> {
-        return fromPromise(channel.createMessage(message));
-    }
-
-    public sendPrivateEmbedMessageToUser(channel: PrivateChannel, color: number, title: string, messageFields: EmbedField[]): Observable<Message> {
-        const embedMessage: MessageContent = {
-            embed: {
-                title: title,
-                color: color,
-                timestamp: new Date(),
-                fields: messageFields,
-            }
-        };
-        return fromPromise(channel.createMessage(embedMessage));
-    }
-
     public sendReactionToMessage(message: Message, emoji: string): Observable<Message> {
         return fromPromise(message.channel.addMessageReaction(message.id, emoji)).pipe(mapTo(message));
     }
 
     sendErrorMessage(message: Message, error: any) {
-        return fromPromise(message.channel.createMessage("Error! " + error.toString()));
+        return fromPromise(message.channel.createMessage(error.toString()));
     }
 
-    getDMChannelForDiscordId(discordId: string): Observable<PrivateChannel> {
-        return fromPromise(this.client.getDMChannel(discordId));
+    getDMChannelForDiscordId(discordId: string): Observable<string> {
+        const channelId = this.privateDMChannels.get(discordId);
+        if (channelId) {
+            return of(channelId);
+        } else {
+            return throwError(new NotRegisteredError());
+        }
     }
 
     validateIsUserOnlineFromDesktop(discordId: string, guildId: string): Observable<boolean> {

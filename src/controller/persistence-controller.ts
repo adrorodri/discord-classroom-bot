@@ -9,6 +9,7 @@ import {Resource, Session} from "../model/session";
 import {NotRegisteredError} from "../errors/not-registered.error";
 import {Activity} from "../model/activity";
 import {ClassUser} from "../model/class-user";
+import {Student} from "../model/student";
 import admin = require('firebase-admin');
 import WriteResult = firestore.WriteResult;
 
@@ -31,6 +32,7 @@ export class PersistenceController {
             key: 'sessions',
             name: 'name',
             date: 'date',
+            attendanceCode: 'attendanceCode',
             attendance: 'attendance',
             participations: 'participations',
             resources: 'resources'
@@ -46,9 +48,11 @@ export class PersistenceController {
         this.db = admin.firestore();
     }
 
-    getRegisteredStudents = (): Observable<any> => {
+    getRegisteredStudents = (): Observable<Student[]> => {
         const docRef = this.db.collection(this.KEYS.USERS.key);
-        return fromPromise(docRef.get()).pipe(map(querySnapshot => querySnapshot.docs.map(doc => doc.data())));
+        return fromPromise(docRef.get()).pipe(
+            map(querySnapshot => querySnapshot.docs.map(doc => doc.data() as Student))
+        );
     }
 
     putRegisteredStudent(discordId: string, universityId: string): Observable<any> {
@@ -117,12 +121,13 @@ export class PersistenceController {
         );
     }
 
-    createNewSession(name: string, date: string, resources: Resource[]): Observable<Session> {
+    createNewSession(name: string, date: string, attendanceCode: string, resources: Resource[]): Observable<Session> {
         const sessionDocRef = this.db.collection(this.KEYS.SESSIONS.key).doc(date);
         const sessionObj = {
             [this.KEYS.SESSIONS.name]: name,
             [this.KEYS.SESSIONS.date]: date,
             [this.KEYS.SESSIONS.attendance]: [],
+            [this.KEYS.SESSIONS.attendanceCode]: attendanceCode,
             [this.KEYS.SESSIONS.resources]: resources
         } as any as Session;
         return fromPromise(sessionDocRef.create(sessionObj)).pipe(mapTo(sessionObj));

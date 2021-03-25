@@ -33,7 +33,8 @@ export const EMOJIS = {
     THUMBS_UP: '👍',
     CHECK: '✅',
     ERROR: '❌',
-    PENCIL: '✏️'
+    PENCIL: '✏️',
+    CHAT_BUBBLE: '🗨️'
 }
 
 export const COLORS = {

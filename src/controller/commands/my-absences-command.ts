@@ -16,7 +16,7 @@ export class MyAbsencesCommand {
         return zip(this.persistence.getAllSessions(), this.persistence.getAttendanceForDiscordId(discordId)).pipe(
             map(([sessions, attendance]) => this.filterSessionsUntilToday(sessions).length - attendance.length),
             switchMap(absences => this.discord.getDMChannelForDiscordId(discordId).pipe(
-                switchMap(channel => this.discord.sendPrivateMessageToUser(channel, `Total ausencias: ${absences}`)))
+                switchMap(channelId => this.discord.sendMessageToChannelId(channelId, `Total ausencias: ${absences}`)))
             ),
             switchMap(() => handleSuccess(this.discord, message)),
             catchError(error => handleError(this.discord, message, error))
