@@ -14,6 +14,18 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - run: 'echo "$BOT_CONFIG" > ./src/bot-config.ts'
+      shell: bash
+      env:
+        BOT_CONFIG: ${{secrets.BOT_CONFIG}}
+    - run: 'echo "$FIREBASE_CONFIG" > ./src/firebase-config.ts'
+      shell: bash
+      env:
+        FIREBASE_CONFIG: ${{secrets.FIREBASE_CONFIG}}
+    - run: 'echo "$SERVICE_ACCOUNT" > ./src/service-account.json'
+      shell: bash
+      env:
+        SERVICE_ACCOUNT: ${{secrets.SERVICE_ACCOUNT}}
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag adrorodri/classroom-bot
     - name: Push to Docker Hub
