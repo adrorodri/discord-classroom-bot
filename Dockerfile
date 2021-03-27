@@ -4,5 +4,6 @@ WORKDIR /home/node/app
 COPY --chown=node:node package*.json ./
 USER node
 RUN npm install
+RUN npm run build
 COPY --chown=node:node . .
 ENTRYPOINT npm run bot
