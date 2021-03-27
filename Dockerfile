@@ -6,5 +6,6 @@ USER node
 COPY --chown=node:node . .
 RUN npm install
 RUN npm run build
+RUN mv ./src/service-account.json ./dist/service-account.json
 RUN rm -rf ./src
 ENTRYPOINT npm run bot
