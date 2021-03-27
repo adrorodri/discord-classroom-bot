@@ -6,4 +6,5 @@ USER node
 COPY --chown=node:node . .
 RUN npm install
 RUN npm run build
+RUN rm -rf ./src
 ENTRYPOINT npm run bot
