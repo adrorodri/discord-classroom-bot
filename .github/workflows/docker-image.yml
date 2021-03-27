@@ -22,10 +22,10 @@ jobs:
       shell: bash
       env:
         FIREBASE_CONFIG: ${{secrets.FIREBASE_CONFIG}}
-    - run: 'echo "$SERVICE_ACCOUNT" > ./src/service-account.json'
+    - run: 'echo "$SERVICE_ACCOUNT_JSON" > ./src/service-account.json'
       shell: bash
       env:
-        SERVICE_ACCOUNT: ${{secrets.SERVICE_ACCOUNT}}
+        SERVICE_ACCOUNT_JSON: ${{secrets.SERVICE_ACCOUNT_JSON}}
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag adrorodri/classroom-bot
     - name: Push to Docker Hub
