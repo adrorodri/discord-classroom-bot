@@ -73,6 +73,9 @@ export class DiscordController {
     }
 
     private updateMemberStatus = (member: Member | Relationship) => {
+        if (!member || !member.clientStatus) {
+            return;
+        }
         this.membersStatus.set(
             member.id,
             member.clientStatus?.desktop === 'online' &&
