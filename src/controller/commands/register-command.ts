@@ -6,6 +6,7 @@ import {DiscordController} from "../discord-controller";
 import {Message} from "eris";
 import {Config} from "../../model/config";
 import {AlreadyRegisteredError} from "../../errors/already-registered.error";
+import {COLORS} from "../../constants";
 
 export class RegisterCommand {
     constructor(private persistence: PersistenceController, private discord: DiscordController, private config: Config) {
@@ -17,7 +18,15 @@ export class RegisterCommand {
         if (universityId) {
             return this.registerDiscordId(discordId, universityId).pipe(
                 switchMap(() => this.discord.getDMChannelForDiscordId(discordId)),
-                switchMap(channelId => this.discord.sendMessageToChannelId(channelId, 'Registrado correctamente!')),
+                switchMap(channelId => this.discord.sendMessageToChannelId(channelId, 'Registro en bot correcto!').pipe(
+                    switchMap(() => this.discord.sendEmbedMessageToChannelId(channelId, COLORS.INFO,
+                        'Para completar tu registro a la materia, llena el siguiente formulario:', [
+                            {
+                                name: 'Formulario Registro y Diagnóstico - 2021',
+                                value: 'https://forms.gle/Q25hHafvZF7WMDXE8'
+                            }
+                        ]))
+                )),
                 switchMap(() => handleSuccess(this.discord, message)),
                 catchError(error => handleError(this.discord, message, error))
             );

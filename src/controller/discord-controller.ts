@@ -15,6 +15,7 @@ import {mapTo} from "rxjs/operators";
 import {InvalidUserStatusError} from "../errors/invalid-user-status.error";
 import {Config} from "../model/config";
 import {NotRegisteredError} from "../errors/not-registered.error";
+import {COLORS} from "../constants";
 
 export class DiscordController {
     private client: eris.Client;
@@ -65,8 +66,9 @@ export class DiscordController {
             this.updateMemberStatus(member);
         });
 
-        this.client.on('guildMemberAdd', (guild, member) => {
-            this.updateMemberDMChannel(member);
+        this.client.on('guildMemberAdd', async (guild, member) => {
+            await this.updateMemberDMChannel(member);
+            await this.sendWelcomeMessageToUser(member);
         });
     }
 
@@ -84,6 +86,27 @@ export class DiscordController {
             member.id,
             dmChannel.id
         );
+    }
+
+    private sendWelcomeMessageToUser = async (member: Member) => {
+        const dmChannel = await this.client.getDMChannel(member.id);
+        const embedMessage: MessageContent = {
+            embed: {
+                title: "Bienvenido a Programacion 3!",
+                description: "Soy el bot de la clase, te ayudaré con las asistencias y tus participaciones\n\n" +
+                    "Para comenzar, manda el comando: \n" +
+                    "-register <CODIGO-UPB>      (Por ejemplo, -register 12345)",
+                color: COLORS.SUCCESS,
+                timestamp: new Date(),
+                fields: [
+                    {
+                        name: 'Para ver la lista de comandos disponibles:',
+                        value: '-help'
+                    }
+                ],
+            }
+        };
+        await dmChannel.createMessage(embedMessage);
     }
 
     public start(): Observable<any> {
