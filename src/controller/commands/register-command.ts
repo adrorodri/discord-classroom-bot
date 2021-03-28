@@ -23,7 +23,7 @@ export class RegisterCommand {
                         'Para completar tu registro a la materia, llena el siguiente formulario:', [
                             {
                                 name: 'Formulario Registro y Diagnóstico - 2021',
-                                value: 'https://forms.gle/Q25hHafvZF7WMDXE8'
+                                value: 'https://forms.gle/cJoshUh38gBCXraZ8'
                             }
                         ]))
                 )),

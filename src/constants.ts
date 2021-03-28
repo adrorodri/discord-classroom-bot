@@ -1,25 +1,25 @@
 export const COMMANDS = {
-    REGISTER: '-register',
-    ATTENDANCE: '-attendance',
+    REGISTER: '-registrar',
+    ATTENDANCE: '-asistencia',
     NEW_SESSION: '-new-session',
     NEW_ACTIVITY: '-new-activity',
-    PARTICIPATION: '-participation',
-    MY_ABSENCES: '-my-absences',
+    PARTICIPATION: '-participacion',
+    MY_ABSENCES: '-mis-ausencias',
     PRESENT_ACTIVITY: '-present-activity',
-    TODAY: '-today',
-    ABSENCES: '-absences',
-    GRADES: '-grades',
+    TODAY: '-hoy',
+    ABSENCES: '-ausencias',
+    GRADES: '-notas',
     HELP: '-help'
 }
 
 export const MESSAGES = {
     HELP_PUBLIC: 'Commands:' +
-        `\n\n ${COMMANDS.REGISTER} <Unviersity-Id>` +
-        `\n ${COMMANDS.ATTENDANCE}` +
-        `\n ${COMMANDS.PARTICIPATION}` +
-        `\n ${COMMANDS.MY_ABSENCES}` +
-        `\n ${COMMANDS.TODAY}` +
-        `\n ${COMMANDS.HELP}`,
+        `\n\n ${COMMANDS.REGISTER} <Unviersity-Id> >>>>> Registrarse en el bot` +
+        `\n ${COMMANDS.ATTENDANCE} >>>>> Registra tu asistencia (solo se permite al inicio del horario de clase)` +
+        `\n ${COMMANDS.PARTICIPATION} >>>>> Registra una participacion (se valida por el docente)` +
+        `\n ${COMMANDS.MY_ABSENCES} >>>>> Te indica cuantas ausencias tienes acumuladas` +
+        `\n ${COMMANDS.TODAY} >>>>> Devuelve un mensaje con la informacion de la sesion del dia actual` +
+        `\n ${COMMANDS.HELP} >>>>> Muestra este mensaje de ayuda`,
 
     HELP_ADMIN: 'Commands:' +
         `\n\n ${COMMANDS.NEW_SESSION}` +
