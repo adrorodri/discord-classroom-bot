@@ -9,7 +9,8 @@ export const COMMANDS = {
     TODAY: '-hoy',
     ABSENCES: '-ausencias',
     GRADES: '-notas',
-    HELP: '-help'
+    HELP: '-help',
+    TIME: '-time'
 }
 
 export const MESSAGES = {

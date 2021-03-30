@@ -18,6 +18,7 @@ import {MyAbsencesCommand} from "./commands/my-absences-command";
 import {ParticipationCommand} from "./commands/participation-command";
 import {DateUtils} from "../utils/date-utils";
 import {SendTeacherNotificationsCommand} from "./commands/send-teacher-notifications-command";
+import {ServerTimeCommand} from "./commands/server-time-command";
 
 export class ClassroomController {
     private persistence: PersistenceController = new PersistenceController(this.config.classes[0].code);
@@ -30,6 +31,7 @@ export class ClassroomController {
     private newActivityCommand = new NewActivityCommand(this.persistence, this.discord, this.config);
     private participationCommand = new ParticipationCommand(this.persistence, this.discord, this.config);
     private helpCommand = new HelpCommand(this.discord, this.config);
+    private serverTimeCommand = new ServerTimeCommand(this.discord, this.config);
     private todayCommand = new TodayCommand(this.persistence, this.discord);
     private sendClassNotifications = new SendClassNotificationsCommand(this.persistence, this.discord, this.config);
     private sendTeacherNotificationsCommand = new SendTeacherNotificationsCommand(this.persistence, this.discord, this.config);
@@ -98,6 +100,8 @@ export class ClassroomController {
             return this.myAbsencesCommand.execute(message, args);
         } else if (isValidCommand(COMMANDS.HELP)) {
             return this.helpCommand.execute(message, args);
+        } else if (isValidCommand(COMMANDS.TIME)) {
+            return this.serverTimeCommand.execute(message, args);
         } else if (isValidCommand(COMMANDS.TODAY)) {
             return this.todayCommand.executeFromMessage(message, args);
         } else {
