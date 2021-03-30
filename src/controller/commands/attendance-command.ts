@@ -18,23 +18,22 @@ export class AttendanceCommand {
     execute(message: Message, args: string[] = []): Observable<boolean> {
         const discordId = message.author.id;
         const attendanceCode = args[0];
+        const today = DateUtils.getTodayAsString();
         return this.validateCurrentTime(this.config.classes[0].start_time, this.config.classes[0].attendance_end_time).pipe(
             switchMap(() => this.validateUserStatus(discordId, this.config.guildId)),
-            switchMap(() => this.validateAttendanceCode(attendanceCode)),
-            switchMap(() => this.attendanceForDiscordId(discordId)),
+            switchMap(() => this.validateAttendanceCode(attendanceCode, today)),
+            switchMap(() => this.attendanceForDiscordId(discordId, today)),
             switchMap(() => handleSuccess(this.discord, message)),
             catchError(error => handleError(this.discord, message, error))
         )
     }
 
-    private attendanceForDiscordId = (discordId: string): Observable<any> => {
-        const today = DateUtils.getTodayAsString();
-        return this.persistence.setAttendanceForDiscordId(discordId, today);
+    private attendanceForDiscordId = (discordId: string, date: string): Observable<any> => {
+        return this.persistence.setAttendanceForDiscordId(discordId, date);
     }
 
-    private validateAttendanceCode = (code: string): Observable<any> => {
-        const today = DateUtils.getTodayAsString();
-        return this.persistence.getSessionForDate(today).pipe(
+    private validateAttendanceCode = (code: string, date: string): Observable<any> => {
+        return this.persistence.getSessionForDate(date).pipe(
             tap(session => {
                 if (session.attendanceCode !== code) {
                     throw new AttendanceInvalidCodeError();

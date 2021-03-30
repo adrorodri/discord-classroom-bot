@@ -19,6 +19,7 @@ import {ParticipationCommand} from "./commands/participation-command";
 import {DateUtils} from "../utils/date-utils";
 import {SendTeacherNotificationsCommand} from "./commands/send-teacher-notifications-command";
 import {ServerTimeCommand} from "./commands/server-time-command";
+import {CommandUtils} from "../utils/command-utils";
 
 export class ClassroomController {
     private persistence: PersistenceController = new PersistenceController(this.config.classes[0].code);
@@ -73,9 +74,15 @@ export class ClassroomController {
         const channel = message.channel;
         const command = message.content.split(" ", 1)[0];
         const rawArgs = message.content.split(command + '')[1].trim();
-        let args = [];
-        if (rawArgs) {
+        let args: string[];
+        if (rawArgs && CommandUtils.isJson(rawArgs)) {
             args = JSON.parse(rawArgs);
+        } else {
+            if (rawArgs.indexOf(" ") > -1) {
+                args = rawArgs.split(" ").map(t => t.toString());
+            } else {
+                args = [rawArgs.toString()];
+            }
         }
         const isPrivate = (): boolean => {
             return channel instanceof PrivateChannel;
