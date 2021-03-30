@@ -22,5 +22,4 @@ class Bot {
     }
 }
 
-process.env.TZ = 'America/La_Paz' // Timezone hotfix
 const bot = new Bot(config);

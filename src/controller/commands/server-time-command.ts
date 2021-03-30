@@ -12,7 +12,7 @@ export class ServerTimeCommand {
 
     execute(message: Message, args: string[]): Observable<boolean> {
         const channel = message.channel;
-        return this.discord.sendMessageToChannel(channel, (new Date()).toISOString()).pipe(
+        return this.discord.sendMessageToChannel(channel, (new Date()).toString()).pipe(
             switchMap(() => handleSuccess(this.discord, message, EMOJIS.THUMBS_UP))
         );
     }
