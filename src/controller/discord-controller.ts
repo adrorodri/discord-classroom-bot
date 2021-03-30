@@ -16,6 +16,7 @@ import {InvalidUserStatusError} from "../errors/invalid-user-status.error";
 import {Config} from "../model/config";
 import {NotRegisteredError} from "../errors/not-registered.error";
 import {COLORS} from "../constants";
+import {Logger} from "../utils/logger";
 
 export class DiscordController {
     private client: eris.Client;
@@ -32,16 +33,16 @@ export class DiscordController {
     private initClientEvents(config: Config) {
 
         this.client.on('ready', () => {
-            console.log('Connected and ready.');
+            Logger.log('Connected and ready.');
             this.client.guilds.get(config.guildId)?.members?.filter(member => !member.user.bot)?.forEach(member => {
-                console.log(member.id, JSON.stringify(member.clientStatus));
+                Logger.log(member.id, JSON.stringify(member.clientStatus));
                 this.updateMemberStatus(member);
                 this.updateMemberDMChannel(member);
             })
         });
 
         this.client.on('error', err => {
-            console.warn(err);
+            Logger.warn(err);
         });
 
         this.client.on('messageCreate', (msg) => {
@@ -62,7 +63,6 @@ export class DiscordController {
         });
 
         this.client.on('presenceUpdate', (member, oldPresence) => {
-            console.log(member.id, JSON.stringify(member.clientStatus));
             this.updateMemberStatus(member);
         });
 

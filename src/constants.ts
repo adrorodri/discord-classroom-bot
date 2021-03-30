@@ -15,7 +15,7 @@ export const COMMANDS = {
 export const MESSAGES = {
     HELP_PUBLIC: 'Commands:' +
         `\n\n ${COMMANDS.REGISTER} <Unviersity-Id> >>>>> Registrarse en el bot` +
-        `\n ${COMMANDS.ATTENDANCE} >>>>> Registra tu asistencia (solo se permite al inicio del horario de clase)` +
+        `\n ${COMMANDS.ATTENDANCE} <código> >>>>> Registra tu asistencia (solo se permite al inicio del horario de clase)` +
         `\n ${COMMANDS.PARTICIPATION} >>>>> Registra una participacion (se valida por el docente)` +
         `\n ${COMMANDS.MY_ABSENCES} >>>>> Te indica cuantas ausencias tienes acumuladas` +
         `\n ${COMMANDS.TODAY} >>>>> Devuelve un mensaje con la informacion de la sesion del dia actual` +

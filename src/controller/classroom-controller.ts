@@ -61,10 +61,20 @@ export class ClassroomController {
     }
 
     processMessage(message: Message): Observable<any> {
+        const isCommand = (content: string): boolean => {
+            return content.startsWith('-');
+        }
+        if (!isCommand(message.content)) {
+            return EMPTY;
+        }
         const channelId = message.channel.id;
         const channel = message.channel;
         const command = message.content.split(" ", 1)[0];
-        const args = message.content.split(command + '')[1].match(/(\w+\|(".+"))|[^\s]+/g) || [];
+        const rawArgs = message.content.split(command + '')[1].trim();
+        let args = [];
+        if (rawArgs) {
+            args = JSON.parse(rawArgs);
+        }
         const isPrivate = (): boolean => {
             return channel instanceof PrivateChannel;
         }
