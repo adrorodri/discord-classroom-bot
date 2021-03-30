@@ -22,4 +22,7 @@ class Bot {
     }
 }
 
+const setTZ = require('set-tz');
+setTZ(config.timezone);
+
 const bot = new Bot(config);

@@ -1,5 +1,6 @@
 export interface Config {
     "bot_token": string,
+    "timezone": string,
     "teacher": {
         "discordId": string
     },
