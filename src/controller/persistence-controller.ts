@@ -14,6 +14,7 @@ import * as rm from 'typed-rest-client/RestClient'
 import admin = require('firebase-admin');
 import WriteResult = firestore.WriteResult;
 import {DateUtils} from "../utils/date-utils";
+import DocumentData = firebase.firestore.DocumentData;
 
 export class PersistenceController {
     private app = firebase.initializeApp(firebaseConfig);
@@ -86,6 +87,18 @@ export class PersistenceController {
                 }
             }),
             map(queryResult => queryResult.docs[0].id)
+        );
+    }
+
+    getDiscordIdFromUniversityId = (universityId): Observable<string> => {
+        const docRef = this.db.collection(this.KEYS.USERS.key).doc(universityId);
+        return fromPromise(docRef.get()).pipe(
+            tap(snapshot => {
+                if (!snapshot.exists) {
+                    throw new NotRegisteredError();
+                }
+            }),
+            map(snapshot => (snapshot.data() as DocumentData)[this.KEYS.USERS.discordId])
         );
     }
 

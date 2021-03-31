@@ -13,7 +13,7 @@ import {NewActivityCommand} from "./commands/new-activity-command";
 import {HelpCommand} from "./commands/help-command";
 import {TodayCommand} from "./commands/today-command";
 import {SendClassNotificationsCommand} from "./commands/send-class-notifications-command";
-import {handleErrorWithoutMessage} from "./commands/common-handlers";
+import {handleErrorWithoutMessage, isAuthorAdmin} from "./commands/common-handlers";
 import {MyAbsencesCommand} from "./commands/my-absences-command";
 import {ParticipationCommand} from "./commands/participation-command";
 import {DateUtils} from "../utils/date-utils";
@@ -21,6 +21,8 @@ import {SendTeacherNotificationsCommand} from "./commands/send-teacher-notificat
 import {ServerTimeCommand} from "./commands/server-time-command";
 import {CommandUtils} from "../utils/command-utils";
 import {ActivityCommand} from "./commands/activity-command";
+import {ManualParticipationCommand} from "./commands/manual-participation-command";
+import {ManualAttendanceCommand} from "./commands/manual-attendance-command";
 
 export class ClassroomController {
     private persistence: PersistenceController = new PersistenceController(this.config.classes[0].code);
@@ -29,10 +31,12 @@ export class ClassroomController {
     // Commands
     private registerCommand = new RegisterCommand(this.persistence, this.discord, this.config)
     private attendanceCommand = new AttendanceCommand(this.persistence, this.discord, this.config);
+    private manualAttendanceCommand = new ManualAttendanceCommand(this.persistence, this.discord, this.config);
     private activityCommand = new ActivityCommand(this.persistence, this.discord, this.config);
     private newSessionCommand = new NewSessionCommand(this.persistence, this.discord, this.config);
     private newActivityCommand = new NewActivityCommand(this.persistence, this.discord, this.config);
     private participationCommand = new ParticipationCommand(this.persistence, this.discord, this.config);
+    private manualParticipationCommand = new ManualParticipationCommand(this.persistence, this.discord, this.config);
     private helpCommand = new HelpCommand(this.discord, this.config);
     private serverTimeCommand = new ServerTimeCommand(this.discord, this.config);
     private todayCommand = new TodayCommand(this.persistence, this.discord);
@@ -86,6 +90,7 @@ export class ClassroomController {
         }
         const channelId = message.channel.id;
         const channel = message.channel;
+        const discordId = message.author.id;
         const command = message.content.split(" ", 1)[0];
         const rawArgs = message.content.split(command + '')[1].trim();
         let args: string[];
@@ -113,10 +118,6 @@ export class ClassroomController {
             return this.attendanceCommand.execute(message, args);
         } else if (isPrivate() && isValidCommand(COMMANDS.ACTIVITY)) {
             return this.activityCommand.execute(message, args);
-        } else if (isPrivate() && isValidCommand(COMMANDS.NEW_SESSION)) {
-            return this.newSessionCommand.execute(message, args);
-        } else if (isPrivate() && isValidCommand(COMMANDS.NEW_ACTIVITY)) {
-            return this.newActivityCommand.execute(message, args);
         } else if (isValidChannelId(this.config.channels.participations) && isValidCommand(COMMANDS.PARTICIPATION)) {
             return this.participationCommand.execute(message, args);
         } else if (isPrivate() && isValidCommand(COMMANDS.MY_ABSENCES)) {
@@ -127,6 +128,14 @@ export class ClassroomController {
             return this.serverTimeCommand.execute(message, args);
         } else if (isValidCommand(COMMANDS.TODAY)) {
             return this.todayCommand.executeFromMessage(message, args);
+        } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.NEW_SESSION)) {
+            return this.newSessionCommand.execute(message, args);
+        } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.NEW_ACTIVITY)) {
+            return this.newActivityCommand.execute(message, args);
+        } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.MANUAL_PARTICIPATION)) {
+            return this.manualParticipationCommand.execute(message, args);
+        } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.MANUAL_ATTENDANCE)) {
+            return this.manualAttendanceCommand.execute(message, args);
         } else {
             return EMPTY;
         }

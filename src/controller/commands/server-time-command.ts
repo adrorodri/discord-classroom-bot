@@ -1,9 +1,9 @@
 import {switchMap} from "rxjs/operators";
 import {Observable} from "rxjs";
-import {handleSuccess, isAuthorAdmin} from "./common-handlers";
+import {handleSuccess} from "./common-handlers";
 import {DiscordController} from "../discord-controller";
 import {Message} from "eris";
-import {EMOJIS, MESSAGES} from "../../constants";
+import {EMOJIS} from "../../constants";
 import {Config} from "../../model/config";
 
 export class ServerTimeCommand {

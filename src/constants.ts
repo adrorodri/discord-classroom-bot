@@ -5,6 +5,8 @@ export const COMMANDS = {
     NEW_SESSION: '-new-session',
     NEW_ACTIVITY: '-new-activity',
     PARTICIPATION: '-participacion',
+    MANUAL_ATTENDANCE: '-manual-attendance',
+    MANUAL_PARTICIPATION: '-manual-participation',
     MY_ABSENCES: '-mis-ausencias',
     PRESENT_ACTIVITY: '-present-activity',
     TODAY: '-hoy',
