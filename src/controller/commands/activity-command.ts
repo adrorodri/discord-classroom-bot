@@ -23,42 +23,44 @@ export class ActivityCommand {
         const channel = message.channel;
         return this.validateCurrentTime(this.config.classes[0].end_time, '23:59').pipe(
             switchMap(() => this.validateMessageContents(attachments, args)),
-            switchMap(() => this.persistence.getActivityForDate(today)),
             switchMap(() => this.validateUserDidntPresentActivityYet(discordId, today)),
-            switchMap(() => this.persistence.addActivityPresentationToDiscordId(
+            switchMap(() => this.persistence.getActivityForDate(today)),
+            switchMap(activity => this.persistence.addActivityPresentationToDiscordId(
                 discordId,
                 today,
                 hasAttachments ? attachments[0].url : args.join(' ') || '')
+                .pipe(
+                    switchMap(() => this.discord.sendEmbedMessageToChannelId(
+                        this.config.channels.activities_presented,
+                        COLORS.SUCCESS,
+                        `${this.discord.getNameForDiscordId(discordId) || discordId}`,
+                        [
+                            ...attachments.map(a => {
+                                return {
+                                    name: 'attachment',
+                                    value: a.url
+                                }
+                            }),
+                            {
+                                name: 'raw-content',
+                                value: args.join(' ') || 'No Content'
+                            },
+                            {
+                                name: 'discordId',
+                                value: discordId
+                            },
+                            {
+                                name: 'Activity',
+                                value: `${activity.name} - ${activity.date}`
+                            },
+                            {
+                                name: 'Time',
+                                value: DateUtils.nowString()
+                            }
+                        ]
+                    ))
+                )
             ),
-            switchMap(() => this.discord.sendEmbedMessageToChannelId(
-                this.config.channels.activities_presented,
-                COLORS.SUCCESS,
-                `${this.discord.getNameForDiscordId(discordId) || discordId}`,
-                [
-                    ...attachments.map(a => {
-                        return {
-                            name: 'attachment',
-                            value: a.url
-                        }
-                    }),
-                    {
-                        name: 'raw-content',
-                        value: args.join(' ') || ''
-                    },
-                    {
-                        name: 'discordId',
-                        value: discordId
-                    },
-                    {
-                        name: 'Activity',
-                        value: today
-                    },
-                    {
-                        name: 'Time',
-                        value: DateUtils.nowString()
-                    }
-                ]
-            )),
             switchMap(() => handleSuccess(this.discord, message)),
             switchMap(() => this.discord.sendMessageToChannel(channel, 'Actividad registrada correctamente!')),
             catchError(error => handleError(this.discord, message, error))
