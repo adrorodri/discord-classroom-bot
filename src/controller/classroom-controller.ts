@@ -20,6 +20,7 @@ import {DateUtils} from "../utils/date-utils";
 import {SendTeacherNotificationsCommand} from "./commands/send-teacher-notifications-command";
 import {ServerTimeCommand} from "./commands/server-time-command";
 import {CommandUtils} from "../utils/command-utils";
+import {ActivityCommand} from "./commands/activity-command";
 
 export class ClassroomController {
     private persistence: PersistenceController = new PersistenceController(this.config.classes[0].code);
@@ -28,6 +29,7 @@ export class ClassroomController {
     // Commands
     private registerCommand = new RegisterCommand(this.persistence, this.discord, this.config)
     private attendanceCommand = new AttendanceCommand(this.persistence, this.discord, this.config);
+    private activityCommand = new ActivityCommand(this.persistence, this.discord, this.config);
     private newSessionCommand = new NewSessionCommand(this.persistence, this.discord, this.config);
     private newActivityCommand = new NewActivityCommand(this.persistence, this.discord, this.config);
     private participationCommand = new ParticipationCommand(this.persistence, this.discord, this.config);
@@ -39,6 +41,7 @@ export class ClassroomController {
     private myAbsencesCommand = new MyAbsencesCommand(this.persistence, this.discord, this.config);
 
     constructor(private config: Config, private discord: DiscordController) {
+        // Class information at start / end
         this.cron.addTask(CronController.getCronTimeForHourMinute(this.config.classes[0].start_time), () => {
             this.todayCommand.executeWithoutMessage().pipe(
                 switchMap(session => this.sendClassNotifications.sendStartClass(session.resources).pipe(
@@ -52,6 +55,7 @@ export class ClassroomController {
             }, handleErrorWithoutMessage);
         });
 
+        // Attendance
         const attendanceWarning = DateUtils.getTimeXMinutesEarlierAsString(this.config.classes[0].attendance_end_time, 5);
         this.cron.addTask(CronController.getCronTimeForHourMinute(attendanceWarning), () => {
             this.sendClassNotifications.sendWarningAttendance(5).subscribe(() => {
@@ -59,6 +63,16 @@ export class ClassroomController {
         });
         this.cron.addTask(CronController.getCronTimeForHourMinute(this.config.classes[0].attendance_end_time), () => {
             this.sendClassNotifications.sendEndAttendance().subscribe(() => {
+            }, handleErrorWithoutMessage);
+        });
+
+        // Activities
+        this.cron.addTask(CronController.getCronTimeForHourMinute(this.config.classes[0].end_time), () => {
+            this.sendClassNotifications.sendTodaysActivityNotification().subscribe(() => {
+            }, handleErrorWithoutMessage);
+        });
+        this.cron.addTask(CronController.getCronTimeForHourMinute('18:00'), () => {
+            this.sendClassNotifications.sendTodaysActivityReminder().subscribe(() => {
             }, handleErrorWithoutMessage);
         });
     }
@@ -97,6 +111,8 @@ export class ClassroomController {
             return this.registerCommand.execute(message, args);
         } else if (isPrivate() && isValidCommand(COMMANDS.ATTENDANCE)) {
             return this.attendanceCommand.execute(message, args);
+        } else if (isPrivate() && isValidCommand(COMMANDS.ACTIVITY)) {
+            return this.activityCommand.execute(message, args);
         } else if (isPrivate() && isValidCommand(COMMANDS.NEW_SESSION)) {
             return this.newSessionCommand.execute(message, args);
         } else if (isPrivate() && isValidCommand(COMMANDS.NEW_ACTIVITY)) {

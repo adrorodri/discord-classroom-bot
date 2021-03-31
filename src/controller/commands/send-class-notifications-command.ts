@@ -1,10 +1,11 @@
-import {mapTo} from "rxjs/operators";
+import {mapTo, switchMap} from "rxjs/operators";
 import {Observable} from "rxjs";
 import {PersistenceController} from "../persistence-controller";
 import {DiscordController} from "../discord-controller";
 import {Config} from "../../model/config";
 import {Resource} from "../../model/session";
 import {COLORS} from "../../constants";
+import {DateUtils} from "../../utils/date-utils";
 
 export class SendClassNotificationsCommand {
     constructor(private persistence: PersistenceController,
@@ -51,5 +52,31 @@ export class SendClassNotificationsCommand {
             'El registro de attendance terminó.',
             []
         ).pipe(mapTo(true));
+    }
+
+    sendTodaysActivityNotification(): Observable<boolean> {
+        const today = DateUtils.getTodayAsString();
+        return this.persistence.getActivityForDate(today).pipe(
+            switchMap(activity => this.discord.sendEmbedMessageToChannelId(
+                this.config.channels.announcements,
+                COLORS.SUCCESS,
+                `Nueva actividad para hoy!\n${activity.name}\nFecha y hora limite: ${activity.date} 23:59`,
+                activity.resources)
+            ),
+            mapTo(true)
+        )
+    }
+
+    sendTodaysActivityReminder(): Observable<boolean> {
+        const today = DateUtils.getTodayAsString();
+        return this.persistence.getActivityForDate(today).pipe(
+            switchMap(activity => this.discord.sendEmbedMessageToChannelId(
+                this.config.channels.announcements,
+                COLORS.SUCCESS,
+                `Recordatorio de actividad:\n${activity.name}\nFecha y hora limite: ${activity.date} 23:59`,
+                activity.resources)
+            ),
+            mapTo(true)
+        )
     }
 }

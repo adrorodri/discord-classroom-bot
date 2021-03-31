@@ -1,4 +1,4 @@
-import {Observable} from "rxjs";
+import {Observable, of} from "rxjs";
 import {map, mapTo, switchMap, tap} from "rxjs/operators";
 import firebase from 'firebase/app';
 import 'firebase/database';
@@ -8,14 +8,17 @@ import {firestore} from "firebase-admin/lib/firestore";
 import {Resource, Session} from "../model/session";
 import {NotRegisteredError} from "../errors/not-registered.error";
 import {Activity} from "../model/activity";
-import {ClassUser} from "../model/class-user";
+import {ClassUser, UserActivity} from "../model/class-user";
 import {Student} from "../model/student";
+import * as rm from 'typed-rest-client/RestClient'
 import admin = require('firebase-admin');
 import WriteResult = firestore.WriteResult;
+import {DateUtils} from "../utils/date-utils";
 
 export class PersistenceController {
     private app = firebase.initializeApp(firebaseConfig);
     private db: firestore.Firestore;
+    private client: rm.RestClient;
 
     private KEYS = {
         USERS: {
@@ -37,7 +40,12 @@ export class PersistenceController {
             participations: 'participations',
             resources: 'resources'
         },
-        ACTIVITIES: 'activities'
+        ACTIVITIES: {
+            key: 'activities',
+            name: 'name',
+            date: 'date',
+            resources: 'resources'
+        }
     }
 
     constructor(private classId) {
@@ -46,6 +54,7 @@ export class PersistenceController {
             credential: admin.credential.cert(serviceAccount)
         });
         this.db = admin.firestore();
+        this.client = new rm.RestClient('discord-bot');
     }
 
     getRegisteredStudents = (): Observable<Student[]> => {
@@ -121,6 +130,23 @@ export class PersistenceController {
         );
     }
 
+    addActivityPresentationToDiscordId = (discordId: string, date: string, presentation: string): Observable<any> => {
+        const time = DateUtils.nowString();
+        const addActivityToUser = (universityId: string): Observable<WriteResult> => {
+            const userDocRef = this.db.collection(this.KEYS.USERS.key).doc(universityId);
+            return fromPromise(userDocRef.update({
+                [this.KEYS.USERS.activities]: admin.firestore.FieldValue.arrayUnion({
+                    activity: date,
+                    time: `${time}`,
+                    presentation: presentation
+                })
+            }));
+        }
+        return this.getUniversityIdFromDiscordId(discordId).pipe(
+            switchMap(universityId => addActivityToUser(universityId))
+        );
+    }
+
     createNewSession(name: string, date: string, attendanceCode: string, resources: Resource[]): Observable<Session> {
         const sessionDocRef = this.db.collection(this.KEYS.SESSIONS.key).doc(date);
         const sessionObj = {
@@ -134,7 +160,7 @@ export class PersistenceController {
     }
 
     createNewActivity(name: string, date: string, resources: Resource[]): Observable<Activity> {
-        const activityDocRef = this.db.collection(this.KEYS.ACTIVITIES).doc(date);
+        const activityDocRef = this.db.collection(this.KEYS.ACTIVITIES.key).doc(date);
         const activityObj: Activity = {
             name: name,
             date: date,
@@ -146,6 +172,11 @@ export class PersistenceController {
     getSessionForDate(today: string): Observable<Session> {
         const sessionDocRef = this.db.collection(this.KEYS.SESSIONS.key).doc(today);
         return fromPromise(sessionDocRef.get()).pipe(map(snapshot => snapshot.data() as Session));
+    }
+
+    getActivityForDate(today: string): Observable<Activity> {
+        const sessionDocRef = this.db.collection(this.KEYS.ACTIVITIES.key).doc(today);
+        return fromPromise(sessionDocRef.get()).pipe(map(snapshot => snapshot.data() as Activity));
     }
 
     getAllSessions(): Observable<Session[]> {
@@ -164,5 +195,46 @@ export class PersistenceController {
         return this.getUniversityIdFromDiscordId(discordId).pipe(
             switchMap(universityId => getAttendanceForUniversityId(universityId))
         );
+    }
+
+    getActivitiesForDiscordId(discordId: string): Observable<UserActivity[]> {
+        const getActivitiesForUniversityId = (universityId) => {
+            const userDocRef = this.db.collection(this.KEYS.USERS.key).doc(universityId);
+            return fromPromise(userDocRef.get()).pipe(
+                map(snapshot => snapshot.data() as ClassUser),
+                map(classUser => classUser.activities)
+            );
+        }
+        return this.getUniversityIdFromDiscordId(discordId).pipe(
+            switchMap(universityId => getActivitiesForUniversityId(universityId))
+        );
+    }
+
+    createTextFileToStorage(message: string): Observable<string> {
+        return of("");
+    }
+
+    uploadActivityToStorage(discordId: string, activity: string, originalFileName: string, url: string): Observable<string> {
+        return of("");
+        // const fileName = activity + "_" + DateUtils.nowMillis() + "_" + originalFileName;
+        // return fromPromise(this.client.get<Blob>(url)).pipe(
+        //     tap(file => {
+        //         if (!file) {
+        //             throw new InvalidUploadError();
+        //         }
+        //     }),
+        //     switchMap(file => this.getUniversityIdFromDiscordId(discordId).pipe(
+        //         switchMap(universityId => new Observable<string>(observer => {
+        //             this.storage.ref()
+        //                 .child(`${universityId}/${fileName}`)
+        //                 .put(<Blob>file.result)
+        //                 .catch(error => observer.error(error))
+        //                 .then(() => observer.next(universityId))
+        //         })),
+        //         switchMap(universityId =>
+        //             fromPromise(this.storage.ref(`${universityId}/${fileName}`).getDownloadURL())
+        //         )
+        //     ))
+        // );
     }
 }

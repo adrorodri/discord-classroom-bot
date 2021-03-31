@@ -7,9 +7,9 @@ export interface Config {
     "guildId": string,
     "channels": {
         "announcements": string,
-        "activities": string,
         "participations": string,
-        "main_voice": string
+        "main_voice": string,
+        activities_presented: string
     },
     "classes": [
         {

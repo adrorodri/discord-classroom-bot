@@ -23,6 +23,7 @@ export class DiscordController {
     private messagesSubject: Subject<Message> = new Subject<Message>();
     private reactionsSubject: Subject<{ message: PossiblyUncachedMessage, emoji: Emoji, member: Member | { id: string } }> = new Subject();
     private membersStatus: Map<string, boolean> = new Map<string, boolean>();
+    private memberNames: Map<string, string> = new Map<string, string>();
     private privateDMChannels: Map<string, string> = new Map<string, string>();
 
     constructor(config: Config) {
@@ -37,6 +38,7 @@ export class DiscordController {
             this.client.guilds.get(config.guildId)?.members?.filter(member => !member.user.bot)?.forEach(member => {
                 Logger.log(member.id, JSON.stringify(member.clientStatus));
                 this.updateMemberStatus(member);
+                this.updateMemberName(member);
                 this.updateMemberDMChannel(member);
             })
         });
@@ -64,6 +66,7 @@ export class DiscordController {
 
         this.client.on('presenceUpdate', (member, oldPresence) => {
             this.updateMemberStatus(member);
+            this.updateMemberName(member);
         });
 
         this.client.on('guildMemberAdd', async (guild, member) => {
@@ -80,6 +83,16 @@ export class DiscordController {
             member.id,
             member.clientStatus?.desktop === 'online' &&
             member.clientStatus?.mobile === 'offline'
+        );
+    }
+
+    private updateMemberName = (member: Member | Relationship) => {
+        if (!member || !member.user.username) {
+            return;
+        }
+        this.memberNames.set(
+            member.id,
+            member.user.username
         );
     }
 
@@ -167,5 +180,9 @@ export class DiscordController {
 
     validateIsUserOnlineFromDesktop(discordId: string, guildId: string): Observable<boolean> {
         return this.membersStatus.get(discordId) ? of(true) : throwError(new InvalidUserStatusError());
+    }
+
+    getNameForDiscordId(discordId: string): string | undefined {
+        return this.memberNames.get(discordId);
     }
 }

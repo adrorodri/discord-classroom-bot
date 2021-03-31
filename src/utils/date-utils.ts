@@ -1,4 +1,16 @@
 export class DateUtils {
+    static nowMillis(): string {
+        return (new Date().getTime()).toString();
+    }
+
+    static nowISO(): string {
+        return (new Date().toISOString()).toString();
+    }
+
+    static nowString(): string {
+        return (new Date().toString()).toString();
+    }
+
     static getTodayAsString(): string {
         let today = new Date();
         const dd = String(today.getDate()).padStart(2, '0');

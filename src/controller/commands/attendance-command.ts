@@ -3,11 +3,12 @@ import {Observable, of, throwError} from "rxjs";
 import {PersistenceController} from "../persistence-controller";
 import {handleError, handleSuccess} from "./common-handlers";
 import {DiscordController} from "../discord-controller";
-import {Message} from "eris";
+import {Attachment, Message} from "eris";
 import {DateUtils} from "../../utils/date-utils";
 import {AttendanceInvalidError} from "../../errors/attendance-invalid.error";
 import {Config} from "../../model/config";
 import {AttendanceInvalidCodeError} from "../../errors/attendance-invalid-code.error";
+import {MessageWithoutContentError} from "../../errors/message-without-content.error";
 
 export class AttendanceCommand {
     constructor(private persistence: PersistenceController,
@@ -20,12 +21,20 @@ export class AttendanceCommand {
         const attendanceCode = args[0];
         const today = DateUtils.getTodayAsString();
         return this.validateCurrentTime(this.config.classes[0].start_time, this.config.classes[0].attendance_end_time).pipe(
+            switchMap(() => this.validateMessageContents(args)),
             switchMap(() => this.validateUserStatus(discordId, this.config.guildId)),
             switchMap(() => this.validateAttendanceCode(attendanceCode, today)),
             switchMap(() => this.attendanceForDiscordId(discordId, today)),
             switchMap(() => handleSuccess(this.discord, message)),
             catchError(error => handleError(this.discord, message, error))
         )
+    }
+
+    private validateMessageContents = (args: string[]): Observable<any> => {
+        if (args.length) {
+            return of(true);
+        }
+        return throwError(new MessageWithoutContentError())
     }
 
     private attendanceForDiscordId = (discordId: string, date: string): Observable<any> => {
