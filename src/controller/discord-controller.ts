@@ -137,7 +137,11 @@ export class DiscordController {
         return this.reactionsSubject;
     }
 
-    getChannelNameForId(channelId: string): string {
+    public getMessageById(channelId: string, messageId: string): Observable<Message> {
+        return fromPromise(this.client.getMessage(channelId, messageId))
+    }
+
+    public getChannelNameForId(channelId: string): string {
         return this.client.getChannel(channelId).mention
     }
 

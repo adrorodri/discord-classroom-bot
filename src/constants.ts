@@ -7,6 +7,7 @@ export const COMMANDS = {
     PARTICIPATION: '-participacion',
     MANUAL_ATTENDANCE: '-manual-attendance',
     MANUAL_PARTICIPATION: '-manual-participation',
+    MANUAL_ACTIVITY_GRADE: '-manual-activity-grade',
     MY_ABSENCES: '-mis-ausencias',
     PRESENT_ACTIVITY: '-present-activity',
     TODAY: '-hoy',
@@ -39,7 +40,18 @@ export const EMOJIS = {
     CHECK: '✅',
     ERROR: '❌',
     PENCIL: '✏️',
-    CHAT_BUBBLE: '🗨️'
+    CHAT_BUBBLE: '🗨️',
+    GRADE_0: '0️⃣',
+    GRADE_1: '1️⃣',
+    GRADE_2: '2️⃣',
+    GRADE_3: '3️⃣',
+    GRADE_4: '4️⃣',
+    GRADE_5: '5️⃣',
+    GRADE_6: '6️⃣',
+    GRADE_7: '7️⃣',
+    GRADE_8: '8️⃣',
+    GRADE_9: '9️⃣',
+    GRADE_10: '🔟',
 }
 
 export const COLORS = {

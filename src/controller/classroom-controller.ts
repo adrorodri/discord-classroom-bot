@@ -1,7 +1,7 @@
 import {Message, PrivateChannel} from "eris";
-import {EMPTY, Observable} from "rxjs";
+import {EMPTY, Observable, of} from "rxjs";
 import {COMMANDS} from "../constants";
-import {switchMap} from "rxjs/operators";
+import {catchError, filter, switchMap} from "rxjs/operators";
 import {PersistenceController} from "./persistence-controller";
 import {DiscordController} from "./discord-controller";
 import {CronController} from "./cron-controller";
@@ -13,7 +13,7 @@ import {NewActivityCommand} from "./commands/new-activity-command";
 import {HelpCommand} from "./commands/help-command";
 import {TodayCommand} from "./commands/today-command";
 import {SendClassNotificationsCommand} from "./commands/send-class-notifications-command";
-import {handleErrorWithoutMessage, isAuthorAdmin} from "./commands/common-handlers";
+import {handleError, handleErrorWithoutMessage, handleSuccess, isAuthorAdmin} from "./commands/common-handlers";
 import {MyAbsencesCommand} from "./commands/my-absences-command";
 import {ParticipationCommand} from "./commands/participation-command";
 import {DateUtils} from "../utils/date-utils";
@@ -23,6 +23,8 @@ import {CommandUtils} from "../utils/command-utils";
 import {ActivityCommand} from "./commands/activity-command";
 import {ManualParticipationCommand} from "./commands/manual-participation-command";
 import {ManualAttendanceCommand} from "./commands/manual-attendance-command";
+import {Logger} from "../utils/logger";
+import {ManualGradeActivityCommand} from "./commands/manual-grade-activity-command";
 
 export class ClassroomController {
     private persistence: PersistenceController = new PersistenceController(this.config.classes[0].code);
@@ -32,6 +34,7 @@ export class ClassroomController {
     private registerCommand = new RegisterCommand(this.persistence, this.discord, this.config)
     private attendanceCommand = new AttendanceCommand(this.persistence, this.discord, this.config);
     private manualAttendanceCommand = new ManualAttendanceCommand(this.persistence, this.discord, this.config);
+    private manualGradeActivityCommand = new ManualGradeActivityCommand(this.persistence, this.discord, this.config);
     private activityCommand = new ActivityCommand(this.persistence, this.discord, this.config);
     private newSessionCommand = new NewSessionCommand(this.persistence, this.discord, this.config);
     private newActivityCommand = new NewActivityCommand(this.persistence, this.discord, this.config);
@@ -79,6 +82,30 @@ export class ClassroomController {
             this.sendClassNotifications.sendTodaysActivityReminder().subscribe(() => {
             }, handleErrorWithoutMessage);
         });
+
+        // Reactions as grade commands
+        this.discord.subscribeToReactions().pipe(
+            filter(reaction => {
+                return reaction.member.id === this.config.teacher.discordId &&
+                    CommandUtils.getAvailableGradeReactions().some(e => e === reaction.emoji.name) &&
+                    reaction.message.channel.id === this.config.channels.activities_presented
+            }),
+            switchMap(reaction => this.discord.getMessageById(reaction.message.channel.id, reaction.message.id).pipe(
+                switchMap(message => this.persistence.addGradeToActivity(
+                    CommandUtils.getDiscordIdFromEmbedMessage(message),
+                    CommandUtils.getActivityFromEmbedMessage(message),
+                    CommandUtils.getGradeFromReaction(reaction.emoji.name))
+                    .pipe(
+                        switchMap(() => handleSuccess(discord, message)),
+                        catchError(error => handleError(discord, message, error))
+                    )
+                ),
+            )),
+            catchError(error => {
+                Logger.error(error);
+                return of(true)
+            })
+        ).subscribe();
     }
 
     processMessage(message: Message): Observable<any> {
@@ -136,6 +163,8 @@ export class ClassroomController {
             return this.manualParticipationCommand.execute(message, args);
         } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.MANUAL_ATTENDANCE)) {
             return this.manualAttendanceCommand.execute(message, args);
+        } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.MANUAL_ACTIVITY_GRADE)) {
+            return this.manualGradeActivityCommand.execute(message, args);
         } else {
             return EMPTY;
         }

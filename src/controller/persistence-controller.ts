@@ -1,4 +1,4 @@
-import {Observable, of} from "rxjs";
+import {Observable, throwError} from "rxjs";
 import {map, mapTo, switchMap, tap} from "rxjs/operators";
 import firebase from 'firebase/app';
 import 'firebase/database';
@@ -11,9 +11,10 @@ import {Activity} from "../model/activity";
 import {ClassUser, UserActivity} from "../model/class-user";
 import {Student} from "../model/student";
 import * as rm from 'typed-rest-client/RestClient'
+import {DateUtils} from "../utils/date-utils";
+import {MessageWithoutContentError} from "../errors/message-without-content.error";
 import admin = require('firebase-admin');
 import WriteResult = firestore.WriteResult;
-import {DateUtils} from "../utils/date-utils";
 import DocumentData = firebase.firestore.DocumentData;
 
 export class PersistenceController {
@@ -223,31 +224,21 @@ export class PersistenceController {
         );
     }
 
-    createTextFileToStorage(message: string): Observable<string> {
-        return of("");
-    }
-
-    uploadActivityToStorage(discordId: string, activity: string, originalFileName: string, url: string): Observable<string> {
-        return of("");
-        // const fileName = activity + "_" + DateUtils.nowMillis() + "_" + originalFileName;
-        // return fromPromise(this.client.get<Blob>(url)).pipe(
-        //     tap(file => {
-        //         if (!file) {
-        //             throw new InvalidUploadError();
-        //         }
-        //     }),
-        //     switchMap(file => this.getUniversityIdFromDiscordId(discordId).pipe(
-        //         switchMap(universityId => new Observable<string>(observer => {
-        //             this.storage.ref()
-        //                 .child(`${universityId}/${fileName}`)
-        //                 .put(<Blob>file.result)
-        //                 .catch(error => observer.error(error))
-        //                 .then(() => observer.next(universityId))
-        //         })),
-        //         switchMap(universityId =>
-        //             fromPromise(this.storage.ref(`${universityId}/${fileName}`).getDownloadURL())
-        //         )
-        //     ))
-        // );
+    addGradeToActivity(discordId: string, date: string, grade: string): Observable<any> {
+        if (!discordId || !date || !grade) {
+            return throwError(new MessageWithoutContentError())
+        }
+        const addGradeToUserActivity = (universityId: string): Observable<WriteResult> => {
+            const userDocRef = this.db.collection(this.KEYS.USERS.key).doc(universityId);
+            return fromPromise(userDocRef.update({
+                [this.KEYS.USERS.activities_grades]: admin.firestore.FieldValue.arrayUnion({
+                    activity: date,
+                    grade: grade.toString()
+                })
+            }));
+        }
+        return this.getUniversityIdFromDiscordId(discordId).pipe(
+            switchMap(universityId => addGradeToUserActivity(universityId))
+        );
     }
 }

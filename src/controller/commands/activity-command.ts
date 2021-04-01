@@ -68,7 +68,7 @@ export class ActivityCommand {
     }
 
     private validateMessageContents = (attachments: Attachment[], args: string[]): Observable<any> => {
-        if (attachments.length || args.length) {
+        if (attachments.length || (args.length && !args.every(a => a.trim() === ''))) {
             return of(true);
         }
         return throwError(new MessageWithoutContentError())
