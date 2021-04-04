@@ -36,7 +36,7 @@ export class RegisterCommand {
     }
 
     private registerDiscordId = (discordId: string, universityId: string): Observable<boolean> => {
-        return this.persistence.getRegisteredStudents().pipe(
+        return this.persistence.getAllUsers().pipe(
             tap(students => {
                 if (students.some(s => s.discordId === discordId)) {
                     throw new AlreadyRegisteredError();

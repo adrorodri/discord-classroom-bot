@@ -6,7 +6,7 @@ import {DiscordController} from "../discord-controller";
 import {Message} from "eris";
 import {Config} from "../../model/config";
 
-export class ManualGradeActivityCommand {
+export class ManualActivityGradeCommand {
     constructor(private persistence: PersistenceController, private discord: DiscordController, private config: Config) {
     }
 

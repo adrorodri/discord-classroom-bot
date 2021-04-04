@@ -13,6 +13,7 @@ import {Student} from "../model/student";
 import * as rm from 'typed-rest-client/RestClient'
 import {DateUtils} from "../utils/date-utils";
 import {MessageWithoutContentError} from "../errors/message-without-content.error";
+import {Config} from "../model/config";
 import admin = require('firebase-admin');
 import WriteResult = firestore.WriteResult;
 import DocumentData = firebase.firestore.DocumentData;
@@ -25,6 +26,8 @@ export class PersistenceController {
     private KEYS = {
         USERS: {
             key: 'users',
+            name: 'name',
+            universityId: 'universityId',
             discordId: 'discordId',
             attendance: 'attendance',
             participations: 'participations',
@@ -50,7 +53,7 @@ export class PersistenceController {
         }
     }
 
-    constructor(private classId) {
+    constructor(private config: Config) {
         const serviceAccount = require('../service-account.json');
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount)
@@ -59,17 +62,11 @@ export class PersistenceController {
         this.client = new rm.RestClient('discord-bot');
     }
 
-    getRegisteredStudents = (): Observable<Student[]> => {
-        const docRef = this.db.collection(this.KEYS.USERS.key);
-        return fromPromise(docRef.get()).pipe(
-            map(querySnapshot => querySnapshot.docs.map(doc => doc.data() as Student))
-        );
-    }
-
     putRegisteredStudent(discordId: string, universityId: string): Observable<any> {
         const docRef = this.db.collection(this.KEYS.USERS.key).doc(universityId);
         return fromPromise(docRef.set({
             [this.KEYS.USERS.discordId]: discordId,
+            [this.KEYS.USERS.universityId]: universityId,
             [this.KEYS.USERS.attendance]: [],
             [this.KEYS.USERS.participations]: [],
             [this.KEYS.USERS.activities]: [],
@@ -198,6 +195,23 @@ export class PersistenceController {
         return fromPromise(sessionDocRef.get()).pipe(map(snapshot => snapshot.docs.map(doc => doc.data() as Session)));
     }
 
+    getAllPreviousSessions(): Observable<Session[]> {
+        const filterSessionsUntilToday = (sessions: Session[]): Session[] => {
+            const today = Date.now();
+            return sessions.filter(session => Date.parse(session.date) <= today);
+        }
+
+        const sessionDocRef = this.db.collection(this.KEYS.SESSIONS.key);
+        return fromPromise(sessionDocRef.get()).pipe(
+            map(snapshot => snapshot.docs.map(doc => doc.data() as Session)),
+            map(sessions => filterSessionsUntilToday(sessions)));
+    }
+
+    getAllActivities(): Observable<Activity[]> {
+        const sessionDocRef = this.db.collection(this.KEYS.ACTIVITIES.key);
+        return fromPromise(sessionDocRef.get()).pipe(map(snapshot => snapshot.docs.map(doc => doc.data() as Activity)));
+    }
+
     getAttendanceForDiscordId(discordId: string): Observable<string[]> {
         const getAttendanceForUniversityId = (universityId) => {
             const userDocRef = this.db.collection(this.KEYS.USERS.key).doc(universityId);
@@ -239,6 +253,14 @@ export class PersistenceController {
         }
         return this.getUniversityIdFromDiscordId(discordId).pipe(
             switchMap(universityId => addGradeToUserActivity(universityId))
+        );
+    }
+
+    getAllUsers(): Observable<Student[]> {
+        const userDocRef = this.db.collection(this.KEYS.USERS.key);
+        return fromPromise(userDocRef.get()).pipe(
+            map(snapshot => snapshot.docs.map(doc => doc.data() as Student)),
+            map(users => users.filter(u => u.discordId !== this.config.teacher.discordId))
         );
     }
 }

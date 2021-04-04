@@ -24,17 +24,21 @@ import {ActivityCommand} from "./commands/activity-command";
 import {ManualParticipationCommand} from "./commands/manual-participation-command";
 import {ManualAttendanceCommand} from "./commands/manual-attendance-command";
 import {Logger} from "../utils/logger";
-import {ManualGradeActivityCommand} from "./commands/manual-grade-activity-command";
+import {ManualActivityGradeCommand} from "./commands/manual-activity-grade-command";
+import {TopsBottomsCommand} from "./commands/tops-bottoms-command";
+import {SummaryCommand} from "./commands/summary-command";
+import {ManualActivityCommand} from "./commands/manual-activity-command";
 
 export class ClassroomController {
-    private persistence: PersistenceController = new PersistenceController(this.config.classes[0].code);
+    private persistence: PersistenceController = new PersistenceController(this.config);
     private cron: CronController = new CronController();
 
     // Commands
     private registerCommand = new RegisterCommand(this.persistence, this.discord, this.config)
     private attendanceCommand = new AttendanceCommand(this.persistence, this.discord, this.config);
     private manualAttendanceCommand = new ManualAttendanceCommand(this.persistence, this.discord, this.config);
-    private manualGradeActivityCommand = new ManualGradeActivityCommand(this.persistence, this.discord, this.config);
+    private manualActivityCommand = new ManualActivityCommand(this.persistence, this.discord, this.config);
+    private manualActivityGradeCommand = new ManualActivityGradeCommand(this.persistence, this.discord, this.config);
     private activityCommand = new ActivityCommand(this.persistence, this.discord, this.config);
     private newSessionCommand = new NewSessionCommand(this.persistence, this.discord, this.config);
     private newActivityCommand = new NewActivityCommand(this.persistence, this.discord, this.config);
@@ -45,6 +49,8 @@ export class ClassroomController {
     private todayCommand = new TodayCommand(this.persistence, this.discord);
     private sendClassNotifications = new SendClassNotificationsCommand(this.persistence, this.discord, this.config);
     private sendTeacherNotificationsCommand = new SendTeacherNotificationsCommand(this.persistence, this.discord, this.config);
+    private topsBottomsCommand = new TopsBottomsCommand(this.persistence, this.discord, this.config);
+    private summaryCommand = new SummaryCommand(this.persistence, this.discord, this.config);
     private myAbsencesCommand = new MyAbsencesCommand(this.persistence, this.discord, this.config);
 
     constructor(private config: Config, private discord: DiscordController) {
@@ -162,9 +168,15 @@ export class ClassroomController {
         } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.MANUAL_PARTICIPATION)) {
             return this.manualParticipationCommand.execute(message, args);
         } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.MANUAL_ATTENDANCE)) {
-            return this.manualAttendanceCommand.execute(message, args);
+            return this.manualActivityCommand.execute(message, args);
         } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.MANUAL_ACTIVITY_GRADE)) {
-            return this.manualGradeActivityCommand.execute(message, args);
+            return this.manualAttendanceCommand.execute(message, args);
+        } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.MANUAL_ACTIVITY)) {
+            return this.manualActivityGradeCommand.execute(message, args);
+        } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.TOPS_BOTTOMS)) {
+            return this.topsBottomsCommand.execute(message, args);
+        } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.SUMMARY)) {
+            return this.summaryCommand.execute(message, args);
         } else {
             return EMPTY;
         }

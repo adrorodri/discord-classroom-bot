@@ -36,7 +36,7 @@ export class DiscordController {
         this.client.on('ready', () => {
             Logger.log('Connected and ready.');
             this.client.guilds.get(config.guildId)?.members?.filter(member => !member.user.bot)?.forEach(member => {
-                Logger.log(member.id, JSON.stringify(member.clientStatus));
+                Logger.log("Initializing member:", member.id, JSON.stringify(member.clientStatus));
                 this.updateMemberStatus(member);
                 this.updateMemberName(member);
                 this.updateMemberDMChannel(member);
@@ -90,10 +90,17 @@ export class DiscordController {
         if (!member || !member.user.username) {
             return;
         }
-        this.memberNames.set(
-            member.id,
-            member.user.username
-        );
+        if (member instanceof Member) {
+            this.memberNames.set(
+                member.id,
+                member.nick || member.username
+            );
+        } else {
+            this.memberNames.set(
+                member.id,
+                member.user.username
+            );
+        }
     }
 
     private updateMemberDMChannel = async (member: Member) => {
