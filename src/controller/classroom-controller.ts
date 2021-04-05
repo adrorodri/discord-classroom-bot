@@ -116,7 +116,7 @@ export class ClassroomController {
 
     processMessage(message: Message): Observable<any> {
         const isCommand = (content: string): boolean => {
-            return content.startsWith('-');
+            return content.startsWith('-') && !!content.split('-')[1].trim();
         }
         if (!isCommand(message.content)) {
             return EMPTY;
@@ -168,11 +168,11 @@ export class ClassroomController {
         } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.MANUAL_PARTICIPATION)) {
             return this.manualParticipationCommand.execute(message, args);
         } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.MANUAL_ATTENDANCE)) {
-            return this.manualActivityCommand.execute(message, args);
-        } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.MANUAL_ACTIVITY_GRADE)) {
             return this.manualAttendanceCommand.execute(message, args);
-        } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.MANUAL_ACTIVITY)) {
+        } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.MANUAL_ACTIVITY_GRADE)) {
             return this.manualActivityGradeCommand.execute(message, args);
+        } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.MANUAL_ACTIVITY)) {
+            return this.manualActivityCommand.execute(message, args);
         } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.TOPS_BOTTOMS)) {
             return this.topsBottomsCommand.execute(message, args);
         } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.SUMMARY)) {
