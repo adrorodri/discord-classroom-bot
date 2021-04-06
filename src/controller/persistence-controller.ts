@@ -263,4 +263,16 @@ export class PersistenceController {
             map(users => users.filter(u => u.discordId !== this.config.teacher.discordId))
         );
     }
+
+    getUser(discordId: string): Observable<Student> {
+        const docRef = this.db.collection(this.KEYS.USERS.key).where('discordId', '==', discordId);
+        return fromPromise(docRef.get()).pipe(
+            tap(queryResult => {
+                if (queryResult.empty) {
+                    throw new NotRegisteredError();
+                }
+            }),
+            map(queryResult => queryResult.docs[0].data() as Student)
+        );
+    }
 }

@@ -10,8 +10,10 @@ export const COMMANDS = {
     MANUAL_ACTIVITY: '-manual-activity',
     MANUAL_ACTIVITY_GRADE: '-manual-activity-grade',
     MY_ABSENCES: '-mis-ausencias',
+    MY_GRADES: '-mis-notas',
     PRESENT_ACTIVITY: '-present-activity',
     TOPS_BOTTOMS: '-tops-bottoms',
+    WHOIS: '-whois',
     SUMMARY: '-summary',
     TODAY: '-hoy',
     ABSENCES: '-ausencias',
@@ -27,6 +29,7 @@ export const MESSAGES = {
         `\n ${COMMANDS.ACTIVITY} <mensaje, link o archivo adjunto> --> Registra la actividad del dia de hoy (valido hasta 23:59)` +
         `\n ${COMMANDS.PARTICIPATION} --> Registra una participacion (se valida por el docente)` +
         `\n ${COMMANDS.MY_ABSENCES} --> Te indica cuantas ausencias tienes acumuladas` +
+        `\n ${COMMANDS.MY_GRADES} --> Te indica la calificacion de cada actividad presentada` +
         `\n ${COMMANDS.TODAY} --> Devuelve un mensaje con la informacion de la sesion y actividad del dia de hoy` +
         `\n ${COMMANDS.HELP} --> Muestra este mensaje de ayuda`,
 

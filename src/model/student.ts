@@ -4,7 +4,7 @@ export interface Student {
     universityId: string,
     attendance: string[],
     participations: string[],
-    activities: string[],
+    activities: { activity: string, presentation: string, time: string }[],
     activities_grades: { activity: string, grade: string }[],
     exams_grades: string,
     participations_grades: string[]

@@ -28,6 +28,8 @@ import {ManualActivityGradeCommand} from "./commands/manual-activity-grade-comma
 import {TopsBottomsCommand} from "./commands/tops-bottoms-command";
 import {SummaryCommand} from "./commands/summary-command";
 import {ManualActivityCommand} from "./commands/manual-activity-command";
+import {MyGradesCommand} from "./commands/my-grades-command";
+import {WhoisCommand} from "./commands/whois-command";
 
 export class ClassroomController {
     private persistence: PersistenceController = new PersistenceController(this.config);
@@ -52,6 +54,8 @@ export class ClassroomController {
     private topsBottomsCommand = new TopsBottomsCommand(this.persistence, this.discord, this.config);
     private summaryCommand = new SummaryCommand(this.persistence, this.discord, this.config);
     private myAbsencesCommand = new MyAbsencesCommand(this.persistence, this.discord, this.config);
+    private myGradesCommand = new MyGradesCommand(this.persistence, this.discord, this.config);
+    private whoisCommand = new WhoisCommand(this.persistence, this.discord, this.config);
 
     constructor(private config: Config, private discord: DiscordController) {
         // Class information at start / end
@@ -155,6 +159,8 @@ export class ClassroomController {
             return this.participationCommand.execute(message, args);
         } else if (isPrivate() && isValidCommand(COMMANDS.MY_ABSENCES)) {
             return this.myAbsencesCommand.execute(message, args);
+        } else if (isPrivate() && isValidCommand(COMMANDS.MY_GRADES)) {
+            return this.myGradesCommand.execute(message, args);
         } else if (isValidCommand(COMMANDS.HELP)) {
             return this.helpCommand.execute(message, args);
         } else if (isValidCommand(COMMANDS.TIME)) {
@@ -177,6 +183,8 @@ export class ClassroomController {
             return this.topsBottomsCommand.execute(message, args);
         } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.SUMMARY)) {
             return this.summaryCommand.execute(message, args);
+        } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.WHOIS)) {
+            return this.whoisCommand.execute(message, args);
         } else {
             return EMPTY;
         }
