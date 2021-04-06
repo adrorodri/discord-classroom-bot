@@ -61,7 +61,7 @@ export class ClassroomController {
         // Class information at start / end
         this.cron.addTask(CronController.getCronTimeForHourMinute(this.config.classes[0].start_time), () => {
             this.todayCommand.executeWithoutMessage().pipe(
-                switchMap(session => this.sendClassNotifications.sendStartClass(session.resources).pipe(
+                switchMap(session => this.sendClassNotifications.sendStartClass(session).pipe(
                     switchMap(() => this.sendTeacherNotificationsCommand.sendStartClass(session))
                 ))
             ).subscribe(() => {

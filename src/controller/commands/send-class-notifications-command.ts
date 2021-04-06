@@ -3,7 +3,7 @@ import {Observable} from "rxjs";
 import {PersistenceController} from "../persistence-controller";
 import {DiscordController} from "../discord-controller";
 import {Config} from "../../model/config";
-import {Resource} from "../../model/session";
+import {Session} from "../../model/session";
 import {COLORS} from "../../constants";
 import {DateUtils} from "../../utils/date-utils";
 
@@ -13,25 +13,25 @@ export class SendClassNotificationsCommand {
                 private config: Config) {
     }
 
-    sendStartClass(resources: Resource[] = []): Observable<boolean> {
+    sendStartClass(session: Session): Observable<boolean> {
         return this.discord.sendEmbedMessageToChannelId(
             this.config.channels.announcements,
             COLORS.INFO,
-            'La clase esta por comenzar',
-            [...resources, {
+            `La clase esta por comenzar: ${DateUtils.getTodayAsString()}: ${session.name}`,
+            [...session.resources, {
                 name: 'Unirse al canal:',
                 value: this.discord.getChannelNameForId(this.config.channels.main_voice)
             }, {
                 name: 'Mandar el attendance a:',
                 value: this.discord.getChannelNameForId(this.config.channels.announcements)
-            }]).pipe(mapTo(true))
+            }]).pipe(mapTo(true));
     }
 
     sendEndClass(): Observable<boolean> {
         return this.discord.sendEmbedMessageToChannelId(
             this.config.channels.announcements,
             COLORS.INFO,
-            'La clase termino',
+            'La clase terminó',
             []
         ).pipe(mapTo(true));
     }

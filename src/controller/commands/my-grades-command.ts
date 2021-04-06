@@ -32,6 +32,23 @@ export class MyGradesCommand {
             switchMap(response => this.discord.sendMessageToChannelId(message.channel.id, '```' + this.discord.getNameForDiscordId(discordId) + '```').pipe(
                 switchMap(() => this.discord.sendMessageToChannelId(message.channel.id, response))
             )),
+            switchMap(() => zip(this.persistence.getAllSessions(), this.persistence.getAttendanceForDiscordId(discordId)).pipe(
+                map(([sessions, attendance]) => {
+                    const summaryTable = [['Sesión', 'Fecha', 'Asistencia']];
+                    sessions.forEach(session => summaryTable.push([session.name.substr(0, 30), session.date, attendance.some(a => a === session.date) ? 'YES' : 'NO']));
+                    const table = require('text-table');
+                    return '```' + table(summaryTable) + '```';
+                }),
+                switchMap(response => this.discord.sendMessageToChannelId(message.channel.id, response))
+            )),
+            switchMap(() => this.persistence.getUser(discordId).pipe(
+                map(user => {
+                    const summaryTable = [['Participaciones: ', user.participations.length]];
+                    const table = require('text-table');
+                    return '```' + table(summaryTable) + '```';
+                }),
+                switchMap(response => this.discord.sendMessageToChannelId(message.channel.id, response))
+            )),
             switchMap(() => handleSuccess(this.discord, message)),
             catchError(error => handleError(this.discord, message, error))
         );
