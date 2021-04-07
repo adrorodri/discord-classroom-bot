@@ -11,6 +11,7 @@ export const COMMANDS = {
     MANUAL_ACTIVITY_GRADE: '-manual-activity-grade',
     MY_ABSENCES: '-mis-ausencias',
     MY_GRADES: '-mis-notas',
+    GRADES_OF: '-grades-of',
     PRESENT_ACTIVITY: '-present-activity',
     TOPS_BOTTOMS: '-tops-bottoms',
     WHOIS: '-whois',

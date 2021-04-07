@@ -170,11 +170,12 @@ export class PersistenceController {
         return fromPromise(sessionDocRef.create(sessionObj)).pipe(mapTo(sessionObj));
     }
 
-    createNewActivity(name: string, date: string, resources: Resource[]): Observable<Activity> {
+    createNewActivity(name: string, date: string, resources: Resource[], optional: boolean = false): Observable<Activity> {
         const activityDocRef = this.db.collection(this.KEYS.ACTIVITIES.key).doc(date);
         const activityObj: Activity = {
             name: name,
             date: date,
+            optional : optional,
             resources: resources
         };
         return fromPromise(activityDocRef.create(activityObj)).pipe(mapTo(activityObj));

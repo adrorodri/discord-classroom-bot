@@ -32,6 +32,7 @@ export class NewActivityCommand {
                 value: resource.split("|")[1]
             }
         });
+        // TODO: Add optional as param
         return this.persistence.createNewActivity(name, date, parsedResources);
     }
 }

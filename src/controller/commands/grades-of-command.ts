@@ -1,21 +1,25 @@
 import {catchError, map, switchMap} from "rxjs/operators";
-import {Observable, zip} from "rxjs";
+import {Observable, throwError, zip} from "rxjs";
 import {PersistenceController} from "../persistence-controller";
 import {handleError, handleSuccess} from "./common-handlers";
 import {DiscordController} from "../discord-controller";
 import {Message} from "eris";
 import {Config} from "../../model/config";
+import {MessageWithoutContentError} from "../../errors/message-without-content.error";
 import {DateUtils} from "../../utils/date-utils";
 import {Session} from "../../model/session";
 
-export class MyGradesCommand {
+export class GradesOfCommand {
     private table = require('text-table');
 
     constructor(private persistence: PersistenceController, private discord: DiscordController, private config: Config) {
     }
 
     execute(message: Message, args: string[]): Observable<boolean> {
-        const discordId = message.author.id;
+        if(!args || !args.length){
+            return throwError(new MessageWithoutContentError());
+        }
+        const discordId = args[0];
         return zip(this.persistence.getAllActivities(), this.persistence.getUser(discordId)).pipe(
             map(([actities, student]) => {
                 return actities.map(activity => {
