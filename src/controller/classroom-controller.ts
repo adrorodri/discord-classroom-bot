@@ -31,6 +31,7 @@ import {ManualActivityCommand} from "./commands/manual-activity-command";
 import {MyGradesCommand} from "./commands/my-grades-command";
 import {WhoisCommand} from "./commands/whois-command";
 import {GradesOfCommand} from "./commands/grades-of-command";
+import {GradesController} from "./grades-controller";
 
 export class ClassroomController {
     private persistence: PersistenceController = new PersistenceController(this.config);
@@ -55,11 +56,11 @@ export class ClassroomController {
     private topsBottomsCommand = new TopsBottomsCommand(this.persistence, this.discord, this.config);
     private summaryCommand = new SummaryCommand(this.persistence, this.discord, this.config);
     private myAbsencesCommand = new MyAbsencesCommand(this.persistence, this.discord, this.config);
-    private myGradesCommand = new MyGradesCommand(this.persistence, this.discord, this.config);
-    private gradesOfCommand = new GradesOfCommand(this.persistence, this.discord, this.config);
+    private myGradesCommand = new MyGradesCommand(this.persistence, this.discord, this.grades, this.config);
+    private gradesOfCommand = new GradesOfCommand(this.persistence, this.discord, this.grades, this.config);
     private whoisCommand = new WhoisCommand(this.persistence, this.discord, this.config);
 
-    constructor(private config: Config, private discord: DiscordController) {
+    constructor(private config: Config, private discord: DiscordController, private grades: GradesController) {
         // Class information at start / end
         this.cron.addTask(CronController.getCronTimeForHourMinute(this.config.classes[0].start_time), () => {
             this.todayCommand.executeWithoutMessage().pipe(
