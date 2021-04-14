@@ -34,7 +34,7 @@ import {GradesController} from "./grades-controller";
 import {ManualExamGradeCommand} from "./commands/manual-exam-grade-command";
 
 export class ClassroomController {
-    private isUnderMaintenance = true;
+    private isUnderMaintenance = false;
 
     private persistence: PersistenceController = new PersistenceController(this.config);
     private cron: CronController = new CronController();
