@@ -1,3 +1,3 @@
 export class UserStatusError extends Error {
-    message = 'Error en el registro del Attendance'
+    message = 'Error en el comando de Attendance'
 }

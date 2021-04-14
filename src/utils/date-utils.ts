@@ -19,7 +19,7 @@ export class DateUtils {
         return mm + '-' + dd + '-' + yyyy;
     }
 
-    static isBetween(startTime: string, endTime: string): boolean {
+    static isBetweenTimes(startTime: string, endTime: string): boolean {
         const from = new Date();
         from.setHours(Number(startTime.split(':')[0]));
         from.setMinutes(Number(startTime.split(':')[1]));
@@ -43,5 +43,18 @@ export class DateUtils {
         from.setSeconds(0);
         const then = new Date(from.getTime() - (minutesBefore * msPerMinute));
         return `${String(then.getHours()).padStart(2, '0')}:${String(then.getMinutes()).padStart(2, '0')}`;
+    }
+
+    static isBetweenDates(startDate: string, endDate: string, date = DateUtils.getTodayAsString()) {
+        const from = Date.parse(startDate);
+        const to = Date.parse(endDate);
+        const now = Date.parse(date);
+        return from <= now && now <= to;
+    }
+
+    static isAfter(startDate: string) {
+        const from = Date.parse(startDate);
+        const now = Date.parse(DateUtils.getTodayAsString());
+        return from <= now;
     }
 }

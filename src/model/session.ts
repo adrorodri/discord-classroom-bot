@@ -11,3 +11,9 @@ export interface Resource {
     name: string,
     value: string
 }
+
+export interface AttendanceSummary {
+    date: string,
+    name: string,
+    attended: string
+}

@@ -1,3 +1,3 @@
 export class ParticipationInvalidError extends Error {
-    message = 'El registro de participación esta fuera de horario'
+    message = 'El comando de participación esta fuera de horario'
 }

@@ -8,6 +8,7 @@ export const COMMANDS = {
     MANUAL_ATTENDANCE: '-manual-attendance',
     MANUAL_PARTICIPATION: '-manual-participation',
     MANUAL_ACTIVITY: '-manual-activity',
+    MANUAL_EXAM_GRADE: '-manual-exam-grade',
     MANUAL_ACTIVITY_GRADE: '-manual-activity-grade',
     MY_ABSENCES: '-mis-ausencias',
     MY_GRADES: '-mis-notas',
@@ -22,6 +23,9 @@ export const COMMANDS = {
     HELP: '-help',
     TIME: '-time'
 }
+
+export const DIVIDER = '-------------------';
+export const TITLE_SPACER = '-- ';
 
 export const MESSAGES = {
     HELP_PUBLIC: 'Commands:' +

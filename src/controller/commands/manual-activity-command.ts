@@ -17,6 +17,7 @@ export class ManualActivityCommand {
         const authorDiscordId = message.author.id;
         return validateAuthorIsAdmin(this.config, authorDiscordId).pipe(
             switchMap(() => this.persistence.addActivityPresentationToDiscordId(discordId, date, presentation.join(' '))),
+            switchMap(() => this.discord.sendMessageToChannelId(message.channel.id, `Confirmacion: ${this.discord.getNameForDiscordId(discordId)} -> ${date}`)),
             switchMap(() => handleSuccess(this.discord, message)),
             catchError(error => handleError(this.discord, message, error))
         )

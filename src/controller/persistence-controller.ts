@@ -175,7 +175,7 @@ export class PersistenceController {
         const activityObj: Activity = {
             name: name,
             date: date,
-            optional : optional,
+            optional: optional,
             resources: resources
         };
         return fromPromise(activityDocRef.create(activityObj)).pipe(mapTo(activityObj));
@@ -254,6 +254,24 @@ export class PersistenceController {
         }
         return this.getUniversityIdFromDiscordId(discordId).pipe(
             switchMap(universityId => addGradeToUserActivity(universityId))
+        );
+    }
+
+    addExamGradeToUser(discordId: string, partialName: string, grade: string): Observable<any> {
+        if (!discordId || !partialName || !grade) {
+            return throwError(new MessageWithoutContentError())
+        }
+        const addExamGradeToUser = (universityId: string): Observable<WriteResult> => {
+            const userDocRef = this.db.collection(this.KEYS.USERS.key).doc(universityId);
+            return fromPromise(userDocRef.update({
+                [this.KEYS.USERS.exams_grades]: admin.firestore.FieldValue.arrayUnion({
+                    partialName: partialName,
+                    grade: grade.toString()
+                })
+            }));
+        }
+        return this.getUniversityIdFromDiscordId(discordId).pipe(
+            switchMap(universityId => addExamGradeToUser(universityId))
         );
     }
 

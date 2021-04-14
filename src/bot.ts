@@ -8,7 +8,7 @@ import {GradesController} from "./controller/grades-controller";
 
 class Bot {
     private discord = new DiscordController(this.config);
-    private grades = new GradesController();
+    private grades = new GradesController(this.config);
     private controller = new ClassroomController(this.config, this.discord, this.grades);
 
     constructor(private config: Config) {

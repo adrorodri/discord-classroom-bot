@@ -28,12 +28,14 @@ import {ManualActivityGradeCommand} from "./commands/manual-activity-grade-comma
 import {TopsBottomsCommand} from "./commands/tops-bottoms-command";
 import {SummaryCommand} from "./commands/summary-command";
 import {ManualActivityCommand} from "./commands/manual-activity-command";
-import {MyGradesCommand} from "./commands/my-grades-command";
 import {WhoisCommand} from "./commands/whois-command";
 import {GradesOfCommand} from "./commands/grades-of-command";
 import {GradesController} from "./grades-controller";
+import {ManualExamGradeCommand} from "./commands/manual-exam-grade-command";
 
 export class ClassroomController {
+    private isUnderMaintenance = true;
+
     private persistence: PersistenceController = new PersistenceController(this.config);
     private cron: CronController = new CronController();
 
@@ -42,6 +44,7 @@ export class ClassroomController {
     private attendanceCommand = new AttendanceCommand(this.persistence, this.discord, this.config);
     private manualAttendanceCommand = new ManualAttendanceCommand(this.persistence, this.discord, this.config);
     private manualActivityCommand = new ManualActivityCommand(this.persistence, this.discord, this.config);
+    private manualExamGradeCommand = new ManualExamGradeCommand(this.persistence, this.discord, this.config);
     private manualActivityGradeCommand = new ManualActivityGradeCommand(this.persistence, this.discord, this.config);
     private activityCommand = new ActivityCommand(this.persistence, this.discord, this.config);
     private newSessionCommand = new NewSessionCommand(this.persistence, this.discord, this.config);
@@ -56,7 +59,6 @@ export class ClassroomController {
     private topsBottomsCommand = new TopsBottomsCommand(this.persistence, this.discord, this.config);
     private summaryCommand = new SummaryCommand(this.persistence, this.discord, this.config);
     private myAbsencesCommand = new MyAbsencesCommand(this.persistence, this.discord, this.config);
-    private myGradesCommand = new MyGradesCommand(this.persistence, this.discord, this.grades, this.config);
     private gradesOfCommand = new GradesOfCommand(this.persistence, this.discord, this.grades, this.config);
     private whoisCommand = new WhoisCommand(this.persistence, this.discord, this.config);
 
@@ -152,6 +154,11 @@ export class ClassroomController {
         const isValidCommand = (commandToSearch: string): boolean => {
             return command.toLowerCase().startsWith(commandToSearch);
         }
+
+        if (this.isUnderMaintenance && !isAuthorAdmin(this.config, discordId)) {
+            return handleError(this.discord, message, "Bot is under maintenance temporarily")
+        }
+
         if (isPrivate() && isValidCommand(COMMANDS.REGISTER)) {
             return this.registerCommand.execute(message, args);
         } else if (isPrivate() && isValidCommand(COMMANDS.ATTENDANCE)) {
@@ -163,7 +170,7 @@ export class ClassroomController {
         } else if (isPrivate() && isValidCommand(COMMANDS.MY_ABSENCES)) {
             return this.myAbsencesCommand.execute(message, args);
         } else if (isPrivate() && isValidCommand(COMMANDS.MY_GRADES)) {
-            return this.myGradesCommand.execute(message, args);
+            return this.gradesOfCommand.execute(message, [discordId]);
         } else if (isValidCommand(COMMANDS.HELP)) {
             return this.helpCommand.execute(message, args);
         } else if (isValidCommand(COMMANDS.TIME)) {
@@ -182,6 +189,8 @@ export class ClassroomController {
             return this.manualActivityGradeCommand.execute(message, args);
         } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.MANUAL_ACTIVITY)) {
             return this.manualActivityCommand.execute(message, args);
+        } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.MANUAL_EXAM_GRADE)) {
+            return this.manualExamGradeCommand.execute(message, args);
         } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.TOPS_BOTTOMS)) {
             return this.topsBottomsCommand.execute(message, args);
         } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.SUMMARY)) {

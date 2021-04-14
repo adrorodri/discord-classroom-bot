@@ -5,6 +5,14 @@ export interface Activity {
     resources: Resource[]
 }
 
+export interface ActivitySummary {
+    name: string,
+    date: string,
+    optional: boolean,
+    presented: string,
+    grade: string
+}
+
 export interface Resource {
     name: string,
     value: string

@@ -6,6 +6,5 @@ export interface Student {
     participations: string[],
     activities: { activity: string, presentation: string, time: string }[],
     activities_grades: { activity: string, grade: string }[],
-    exams_grades: string,
-    participations_grades: string[]
+    exams_grades: { partialName: string, grade: string }[]
 }

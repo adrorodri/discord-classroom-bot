@@ -52,7 +52,7 @@ export class AttendanceCommand {
     }
 
     private validateCurrentTime = (start: string, end: string): Observable<any> => {
-        const isBetween = DateUtils.isBetween(start, end);
+        const isBetween = DateUtils.isBetweenTimes(start, end);
         if (isBetween) {
             return of(true);
         } else {

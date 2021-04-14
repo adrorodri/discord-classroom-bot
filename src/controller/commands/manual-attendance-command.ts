@@ -26,6 +26,7 @@ export class ManualAttendanceCommand {
         return this.attendanceForDiscordId(discordId, date).pipe(
             switchMap(() => this.discord.getDMChannelForDiscordId(discordId)),
             switchMap(channelId => this.discord.sendMessageToChannelId(channelId, `Asistencia ha sido agregada para la sesión: ${date}`)),
+            switchMap(() => this.discord.sendMessageToChannelId(message.channel.id, `Confirmacion: ${this.discord.getNameForDiscordId(discordId)} -> ${date}`)),
             switchMap(() => handleSuccess(this.discord, message)),
             catchError(error => handleError(this.discord, message, error))
         )
