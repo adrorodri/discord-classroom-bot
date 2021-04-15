@@ -160,6 +160,13 @@ export class DiscordController {
         return fromPromise((this.client.getChannel(channelId) as TextableChannel).createMessage(message));
     }
 
+    public sendFileToChannelId(channelId: string, message: string, file: Buffer, fileName: string): Observable<Message> {
+        return fromPromise((this.client.getChannel(channelId) as TextableChannel).createMessage(message, {
+            name: fileName,
+            file: file
+        }));
+    }
+
     public sendEmbedMessageToChannelId(channelId: string, color: number, title: string, messageFields: EmbedField[]): Observable<Message> {
         const embedMessage: MessageContent = {
             embed: {

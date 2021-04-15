@@ -32,11 +32,13 @@ import {WhoisCommand} from "./commands/whois-command";
 import {GradesOfCommand} from "./commands/grades-of-command";
 import {GradesController} from "./grades-controller";
 import {ManualExamGradeCommand} from "./commands/manual-exam-grade-command";
+import {FileController} from "./file-controller";
 
 export class ClassroomController {
     private isUnderMaintenance = false;
 
     private persistence: PersistenceController = new PersistenceController(this.config);
+    private fileController: FileController = new FileController(this.config);
     private cron: CronController = new CronController();
 
     // Commands
@@ -57,7 +59,7 @@ export class ClassroomController {
     private sendClassNotifications = new SendClassNotificationsCommand(this.persistence, this.discord, this.config);
     private sendTeacherNotificationsCommand = new SendTeacherNotificationsCommand(this.persistence, this.discord, this.config);
     private topsBottomsCommand = new TopsBottomsCommand(this.persistence, this.discord, this.config);
-    private summaryCommand = new SummaryCommand(this.persistence, this.discord, this.config);
+    private summaryCommand = new SummaryCommand(this.persistence, this.fileController, this.discord, this.grades, this.config);
     private myAbsencesCommand = new MyAbsencesCommand(this.persistence, this.discord, this.config);
     private gradesOfCommand = new GradesOfCommand(this.persistence, this.discord, this.grades, this.config);
     private whoisCommand = new WhoisCommand(this.persistence, this.discord, this.config);

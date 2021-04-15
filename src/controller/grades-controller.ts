@@ -8,7 +8,7 @@ export class GradesController {
     constructor(private config: Config) {
     }
 
-    calculateActivitiesSummary(activitiesAvailable: Activity[] | ActivitySummary[], student: Student): ActivitySummary[] {
+    calculateActivitiesSummary(activitiesAvailable: Activity[] | ActivitySummary[] = [], student: Student): ActivitySummary[] {
         return activitiesAvailable.map(activity => {
             return {
                 name: activity.name.substr(0, 30),
@@ -20,7 +20,7 @@ export class GradesController {
         })
     }
 
-    calculateAttendanceSummary(sessionsAvailable: Session[], attendance: string[]): AttendanceSummary[] {
+    calculateAttendanceSummary(sessionsAvailable: Session[] = [], attendance: string[]): AttendanceSummary[] {
         return sessionsAvailable.map(session => {
             return {
                 name: session.name.substr(0, 30),
@@ -30,7 +30,7 @@ export class GradesController {
         })
     }
 
-    calculateActivitiesGrade(activitiesAvailable: Activity[] | ActivitySummary[], student: Student): string {
+    calculateActivitiesGrade(activitiesAvailable: Activity[] | ActivitySummary[] = [], student: Student): string {
         const result = this.calculateActivitiesSummary(activitiesAvailable, student);
         const grade = result.reduce((sum, a) => sum + Number(a.grade || 0), 0) / result.filter(a => !a.optional).length;
         return grade.toFixed(1);
@@ -40,7 +40,7 @@ export class GradesController {
         return Math.min(Math.max(10 * participations.length / 5, 0), 10).toFixed(1);
     }
 
-    calculateAbsences(sessions: AttendanceSummary[]): number {
+    calculateAbsences(sessions: AttendanceSummary[] = []): number {
         return sessions.reduce((sum, session) => {
             return sum + (session.attended === 'NO' ? 1 : 0)
         }, 0);
