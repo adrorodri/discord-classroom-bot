@@ -61,7 +61,7 @@ export class ClassroomController {
     private topsBottomsCommand = new TopsBottomsCommand(this.persistence, this.discord, this.config);
     private summaryCommand = new SummaryCommand(this.persistence, this.fileController, this.discord, this.grades, this.config);
     private myAbsencesCommand = new MyAbsencesCommand(this.persistence, this.discord, this.config);
-    private gradesOfCommand = new GradesOfCommand(this.persistence, this.discord, this.grades, this.config);
+    private gradesOfCommand = new GradesOfCommand(this.persistence, this.fileController, this.discord, this.grades, this.config);
     private whoisCommand = new WhoisCommand(this.persistence, this.discord, this.config);
 
     constructor(private config: Config, private discord: DiscordController, private grades: GradesController) {

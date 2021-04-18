@@ -27,71 +27,69 @@ export class SummaryCommand {
         const filePath = `${this.config.classes[0].code}_summary`;
         const fileMessage = `Summary report for ${new Date().toString()}`;
 
-        return this.persistence.getAllUsers().pipe(
-            switchMap(users => forkJoin(this.persistence.getAllPreviousSessions(), this.persistence.getAllActivities()).pipe(
-                map(([sessions, activities]) => {
-                    const title = 'SUMMARY'
-                    const columnNames = ['Name', 'Discord', 'ID', 'P Num', 'P Grade', 'Act Num', 'Act Grade', 'Exam Grade', 'Total Grade', 'Absences', 'Warning'];
-                    const tableResults = [[title]];
+        return forkJoin(this.persistence.getAllUsers(), this.persistence.getAllPreviousSessions(), this.persistence.getAllActivities()).pipe(
+            map(([users, sessions, activities]) => {
+                const title = 'SUMMARY'
+                const columnNames = ['Name', 'Discord', 'ID', 'P Num', 'P Grade', 'Act Num', 'Act Grade', 'Exam Grade', 'Total Grade', 'Absences', 'Warning'];
+                const tableResults = [[title]];
 
-                    const isWarning = (user: Student): boolean => {
-                        return user.participations.length === 0 || user.activities.length === 0 || (sessions.length - user.attendance.length) === 3;
+                const isWarning = (user: Student): boolean => {
+                    return user.participations.length === 0 || user.activities.length === 0 || (sessions.length - user.attendance.length) === 3;
+                }
+
+                this.config.partials.forEach(partial => {
+                    tableResults.push([DIVIDER]);
+                    tableResults.push([TITLE_SPACER + partial.name]);
+                    tableResults.push([DIVIDER]);
+                    tableResults.push(columnNames);
+                    const isInPartial = (date): boolean => {
+                        return DateUtils.isBetweenDates(partial.startDate, partial.endDate, date);
                     }
+                    const sessionsInPartial = sessions.filter(s => isInPartial(s.date));
+                    const activitiesInPartial = activities.filter(a => isInPartial(a.date));
 
-                    this.config.partials.forEach(partial => {
-                        tableResults.push([DIVIDER]);
-                        tableResults.push([TITLE_SPACER + partial.name]);
-                        tableResults.push([DIVIDER]);
-                        tableResults.push(columnNames);
-                        const isInPartial = (date): boolean => {
-                            return DateUtils.isBetweenDates(partial.startDate, partial.endDate, date);
-                        }
-                        const sessionsInPartial = sessions.filter(s => isInPartial(s.date));
-                        const activitiesInPartial = activities.filter(a => isInPartial(a.date));
-
-                        let participationAvg: string = CommonUtils.getAverage(
-                            users.map(u => u.participations.filter(p => isInPartial(p.substr(0, 10))).length)
-                        ).toFixed(1);
-                        let activitiesAvg: string = CommonUtils.getAverage(
-                            users.map(u =>
-                                CommonUtils.getAverage(
-                                    u.activities_grades && u.activities_grades.length ?
-                                        u.activities_grades.filter(a => isInPartial(a.activity)).map(ag => Number(ag.grade)) : [0]
-                                )
+                    let participationAvg: string = CommonUtils.getAverage(
+                        users.map(u => u.participations.filter(p => isInPartial(p.substr(0, 10))).length)
+                    ).toFixed(1);
+                    let activitiesAvg: string = CommonUtils.getAverage(
+                        users.map(u =>
+                            CommonUtils.getAverage(
+                                u.activities_grades && u.activities_grades.length ?
+                                    u.activities_grades.filter(a => isInPartial(a.activity)).map(ag => Number(ag.grade)) : [0]
                             )
-                        ).toFixed(1);
-                        users.forEach(user => {
-                            const attendanceInPartial = user.attendance.filter(a => isInPartial(a));
-                            const attendanceSummary = this.gradesController.calculateAttendanceSummary(sessionsInPartial, attendanceInPartial);
-                            const activitiesSummary = this.gradesController.calculateActivitiesSummary(activitiesInPartial, user);
+                        )
+                    ).toFixed(1);
+                    users.forEach(user => {
+                        const attendanceInPartial = user.attendance.filter(a => isInPartial(a));
+                        const attendanceSummary = this.gradesController.calculateAttendanceSummary(sessionsInPartial, attendanceInPartial);
+                        const activitiesSummary = this.gradesController.calculateActivitiesSummary(activitiesInPartial, user);
 
-                            const activitiesGrade = this.gradesController.calculateActivitiesGrade(activitiesSummary, user);
-                            const participationsGrade = this.gradesController.calculateParticipationsGrade(user.participations.filter(p => isInPartial(p.substr(0, 10))));
-                            const examGrade = user.exams_grades.find(e => e.partialName === partial.name)?.grade ?? '0';
+                        const activitiesGrade = this.gradesController.calculateActivitiesGrade(activitiesSummary, user);
+                        const participationsGrade = this.gradesController.calculateParticipationsGrade(user.participations.filter(p => isInPartial(p.substr(0, 10))));
+                        const examGrade = user.exams_grades.find(e => e.partialName === partial.name)?.grade ?? '0';
 
-                            tableResults.push([
-                                this.discord.getNameForDiscordId(user.discordId) || 'No name?',
-                                user.discordId,
-                                user.universityId,
-                                user.participations?.filter(p => isInPartial(p.substr(0, 10)))?.length.toString() ?? '0',
-                                participationsGrade,
-                                activitiesSummary.filter(a => a.presented === 'SI').length.toString() ?? '0',
-                                activitiesGrade,
-                                examGrade,
-                                this.gradesController.calculateTotalGrade(activitiesGrade, participationsGrade, examGrade),
-                                this.gradesController.calculateAbsences(attendanceSummary).toString(),
-                                isWarning(user) ? 'WARN' : ''])
-                        });
-                        tableResults.push([DIVIDER]);
-                        tableResults.push(['Avg Part', 'Avg Act']);
-                        tableResults.push([participationAvg, activitiesAvg]);
+                        tableResults.push([
+                            this.discord.getNameForDiscordId(user.discordId) || 'No name?',
+                            user.discordId,
+                            user.universityId,
+                            user.participations?.filter(p => isInPartial(p.substr(0, 10)))?.length.toString() ?? '0',
+                            participationsGrade,
+                            activitiesSummary.filter(a => a.presented === 'SI').length.toString() ?? '0',
+                            activitiesGrade,
+                            examGrade,
+                            this.gradesController.calculateTotalGrade(activitiesGrade, participationsGrade, examGrade),
+                            this.gradesController.calculateAbsences(attendanceSummary).toString(),
+                            isWarning(user) ? 'WARN' : ''])
                     });
-                    return tableResults;
-                }),
-                map(resultTable => {
-                    return this.table(resultTable, {hsep: '|'});
-                })
-            )),
+                    tableResults.push([DIVIDER]);
+                    tableResults.push(['Avg Part', 'Avg Act']);
+                    tableResults.push([participationAvg, activitiesAvg]);
+                });
+                return tableResults;
+            }),
+            map(resultTable => {
+                return this.table(resultTable, {hsep: '|'});
+            }),
             switchMap(stringResponse => this.fileController.writeFile(filePath, fileName, stringResponse)),
             switchMap(() => this.fileController.readFile(filePath, fileName)),
             switchMap(buffer => this.discord.sendFileToChannelId(message.channel.id, fileMessage, buffer, fileName)),

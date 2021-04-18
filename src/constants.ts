@@ -25,6 +25,7 @@ export const COMMANDS = {
 }
 
 export const DIVIDER = '-------------------';
+export const EMPTY = '         ';
 export const TITLE_SPACER = '-- ';
 
 export const MESSAGES = {
