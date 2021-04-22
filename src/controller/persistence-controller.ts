@@ -1,5 +1,5 @@
-import {Observable, throwError} from "rxjs";
-import {map, mapTo, switchMap, tap} from "rxjs/operators";
+import {defer, Observable, of, throwError} from "rxjs";
+import {bufferCount, delay, map, mapTo, repeat, switchMap, tap} from "rxjs/operators";
 import firebase from 'firebase/app';
 import 'firebase/database';
 import {firebaseConfig} from "../firebase-config";
@@ -139,6 +139,13 @@ export class PersistenceController {
                 switchMap(() => addUserToSessionParticipations(universityId))
             ))
         );
+    }
+
+    addMultipleParticipationForDiscordId = (qty: number, discordId: string, date: string): Observable<any> => {
+        if(qty === 0) {
+            return of(true);
+        }
+        return defer(() => this.addParticipationForDiscordId(discordId, date)).pipe(delay(10), repeat(qty), bufferCount(qty))
     }
 
     addActivityPresentationToDiscordId = (discordId: string, date: string, presentation: string): Observable<any> => {

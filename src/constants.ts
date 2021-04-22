@@ -13,6 +13,7 @@ export const COMMANDS = {
     MY_ABSENCES: '-mis-ausencias',
     MY_GRADES: '-mis-notas',
     GRADES_OF: '-grades-of',
+    IN_CLASS_QUIZ: '-in-class-quiz',
     PRESENT_ACTIVITY: '-present-activity',
     TOPS_BOTTOMS: '-tops-bottoms',
     WHOIS: '-whois',
@@ -50,6 +51,8 @@ export const MESSAGES = {
 export const EMOJIS = {
     THUMBS_UP: '👍',
     CHECK: '✅',
+    CLOCK: '🕒',
+    DINOSAUR: '🦖',
     ERROR: '❌',
     PENCIL: '✏️',
     CHAT_BUBBLE: '🗨️',

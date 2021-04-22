@@ -8,10 +8,11 @@ import {
     MessageContent,
     PossiblyUncachedMessage,
     Relationship,
-    TextableChannel
+    TextableChannel,
+    VoiceChannel
 } from "eris";
 import {fromPromise} from "rxjs/internal-compatibility";
-import {mapTo} from "rxjs/operators";
+import {delay, mapTo, switchMap} from "rxjs/operators";
 import {InvalidUserStatusError} from "../errors/invalid-user-status.error";
 import {Config} from "../model/config";
 import {NotRegisteredError} from "../errors/not-registered.error";
@@ -179,8 +180,21 @@ export class DiscordController {
         return fromPromise((this.client.getChannel(channelId) as TextableChannel).createMessage(embedMessage));
     }
 
+    public sendTemporaryMessage(channelId: string, temporaryMessage: string, messageTimeOfLife: number = 1000) {
+        return this.sendMessageToChannelId(channelId, temporaryMessage).pipe(
+            delay(messageTimeOfLife),
+            switchMap(message => fromPromise(message.delete('Message timed out')))
+        );
+    }
+
     public sendReactionToMessage(message: Message, emoji: string): Observable<Message> {
         return fromPromise(message.channel.addMessageReaction(message.id, emoji)).pipe(mapTo(message));
+    }
+
+    public sendReactionsToMessage(message: Message, emojis: string[]): Observable<Message> {
+        return fromPromise(emojis.reduce((promiseChain, emoji) => {
+            return promiseChain.then(() => message.channel.addMessageReaction(message.id, emoji))
+        }, Promise.resolve())).pipe(mapTo(message));
     }
 
     sendErrorMessage(message: Message, error: any) {
@@ -202,5 +216,21 @@ export class DiscordController {
 
     getNameForDiscordId(discordId: string): string | undefined {
         return this.memberNames.get(discordId);
+    }
+
+    getOnlineStudents(config: Config): string[] {
+        return (this.client.guilds.get(config.guildId)?.channels.get(config.channels.main_voice) as VoiceChannel)?.voiceMembers.map(m => m.id)
+    }
+
+    getBotId(): string {
+        return this.client.user.id;
+    }
+
+    deleteMessage(message: Message, reason?: string): Observable<any> {
+        return fromPromise(message.delete(reason));
+    }
+
+    editMessage(message: Message, newContent: string): Observable<any> {
+        return fromPromise(message.edit(newContent))
     }
 }

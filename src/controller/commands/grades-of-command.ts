@@ -68,10 +68,10 @@ export class GradesOfCommand {
                     }));
                     const summaryTable: [string[]] = [[title]];
                     Object.keys(participationsByPartials).forEach(partialName => {
-                        summaryTable.push([DIVIDER])
+                        summaryTable.push([DIVIDER]);
                         summaryTable.push([TITLE_SPACER + partialName]);
-                        summaryTable.push([DIVIDER])
-                        participationsByPartials[partialName].forEach(participation => summaryTable.push([participation.date]))
+                        summaryTable.push([DIVIDER]);
+                        participationsByPartials[partialName].forEach(participation => summaryTable.push([participation.date]));
                         const grade = this.gradesController.calculateParticipationsGrade(participationsByPartials[partialName]);
                         totalParticipationGradesByPartial[partialName] = grade;
                         const footer1 = [`Total Participaciones: ${participationsByPartials[partialName].length}`];
@@ -89,11 +89,11 @@ export class GradesOfCommand {
 
                     const summaryTable: [string[]] = [[title]];
                     Object.keys(attendanceSummaryByPartials).forEach(partialName => {
-                        summaryTable.push([DIVIDER])
+                        summaryTable.push([DIVIDER]);
                         summaryTable.push([TITLE_SPACER + partialName]);
-                        summaryTable.push([DIVIDER])
+                        summaryTable.push([DIVIDER]);
                         summaryTable.push(columnHeaders);
-                        attendanceSummaryByPartials[partialName].forEach(attendance => summaryTable.push([attendance.name, attendance.date, attendance.attended]))
+                        attendanceSummaryByPartials[partialName].forEach(attendance => summaryTable.push([attendance.name, attendance.date, attendance.attended]));
                         const footer = 'Ausencias: ' + this.gradesController.calculateAbsences(attendanceSummaryByPartials[partialName]);
                         summaryTable.push([footer]);
                     });
