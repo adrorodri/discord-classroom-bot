@@ -36,7 +36,7 @@ import {FileController} from "./file-controller";
 import {InClassQuizCommand} from "./commands/in-class-quiz-command";
 
 export class ClassroomController {
-    private isUnderMaintenance = true;
+    private isUnderMaintenance = false;
 
     private persistence: PersistenceController = new PersistenceController(this.config);
     private fileController: FileController = new FileController(this.config);
