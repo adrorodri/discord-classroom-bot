@@ -22,6 +22,7 @@ import {GradesController} from "../grades-controller";
 import {QuizQuestion} from "../../model/quiz-question";
 import {DIVIDER, EMOJIS} from "../../constants";
 import {DateUtils} from "../../utils/date-utils";
+import {QuizError} from "../../errors/quiz.error";
 
 export class InClassQuizCommand {
 
@@ -49,6 +50,11 @@ export class InClassQuizCommand {
                 }
             });
             return of(this.discord.getOnlineStudents(this.config).filter(studentId => studentId !== this.config.teacher.discordId)).pipe(
+                tap(onlineStudents => {
+                    if (!onlineStudents.length) {
+                        throw new QuizError('No students online to start the quiz!')
+                    }
+                }),
                 tap(onlineStudents => onlineStudents.forEach(student => this.initQuizForDiscordId(message, quizName, student, questions, maxParticipations))),
                 switchMap(onlineStudents => this.discord.sendMessageToChannelId(
                     message.channel.id,
