@@ -140,9 +140,10 @@ export class InClassQuizCommand {
             switchMap(() => this.discord.sendMessageToChannelId(dmChannelId, `${DIVIDER}\nEl quiz terminó!\n**Tu score: ${correctAnswers}/${questions.length}**\nParticipaciones ganadas: ${participationsToAdd}\n${DIVIDER}`)),
             switchMap(() => this.persistence.addMultipleParticipationForDiscordId(participationsToAdd, discordId, DateUtils.getTodayAsString())),
             switchMap(() => participationsToAdd > 0 ?
-                this.discord.sendMessageToChannelId(dmChannelId, `${participationsToAdd} participaciones han sido agregadas para hoy`) :
+                this.discord.sendMessageToChannelId(dmChannelId, `${participationsToAdd} participaciones han sido agregadas para hoy! ${EMOJIS.CHECK}`) :
                 of(true)
             ),
+            switchMap(() => this.discord.sendMessageToChannelId(originalMessage.channel.id, `${this.discord.getNameForDiscordId(discordId)} -> ${correctAnswers}/${questions.length} -> ${participationsToAdd} participaciones`)),
             catchError(error => handleError(this.discord, originalMessage, error))
         ).subscribe(() => {
         }, () => {
