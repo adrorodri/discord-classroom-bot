@@ -1,6 +1,6 @@
 import {Message, PrivateChannel} from "eris";
 import {EMPTY, Observable, of} from "rxjs";
-import {COMMANDS} from "../constants";
+import {COMMANDS, EMOJIS} from "../constants";
 import {catchError, filter, switchMap} from "rxjs/operators";
 import {PersistenceController} from "./persistence-controller";
 import {DiscordController} from "./discord-controller";
@@ -101,6 +101,24 @@ export class ClassroomController {
             this.sendClassNotifications.sendTodaysActivityReminder().subscribe(() => {
             }, handleErrorWithoutMessage);
         });
+
+        // Reactions as participation commands
+        this.discord.subscribeToReactions().pipe(
+            filter(reaction => {
+                return reaction.member.id === this.config.teacher.discordId &&
+                    reaction.emoji.name === EMOJIS.CHECK &&
+                    reaction.message.channel.id === this.config.channels.participations
+            }),
+            switchMap(reaction => this.discord.getMessageById(reaction.message.channel.id, reaction.message.id).pipe(
+                switchMap(message => this.persistence.addParticipationForDiscordId(
+                    message.author.id,
+                    DateUtils.getTimestampAsDateString(message.createdAt))
+                    .pipe(
+                        switchMap(() => handleSuccess(this.discord, message)),
+                        catchError(error => handleError(this.discord, message, error))
+                    )),
+            ))
+        ).subscribe();
 
         // Reactions as grade commands
         this.discord.subscribeToReactions().pipe(

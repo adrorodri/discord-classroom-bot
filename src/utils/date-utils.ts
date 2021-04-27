@@ -57,4 +57,12 @@ export class DateUtils {
         const now = Date.parse(DateUtils.getTodayAsString());
         return from <= now;
     }
+
+    static getTimestampAsDateString(timestamp: number) {
+        let date = new Date(timestamp);
+        const dd = String(date.getDate()).padStart(2, '0');
+        const mm = String(date.getMonth() + 1).padStart(2, '0'); //January is 0!
+        const yyyy = date.getFullYear();
+        return mm + '-' + dd + '-' + yyyy;
+    }
 }

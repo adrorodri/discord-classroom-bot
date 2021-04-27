@@ -20,16 +20,6 @@ export class ParticipationCommand {
         return this.validateCurrentTime(this.config.classes[0].start_time, this.config.classes[0].end_time).pipe(
             switchMap(() => this.validateUserStatus(discordId, this.config.guildId)),
             switchMap(() => handleSuccess(this.discord, message, EMOJIS.CHAT_BUBBLE)),
-            switchMap(() => this.discord.subscribeToReactions().pipe(
-                filter(reaction => {
-                    return reaction.member.id === this.config.teacher.discordId &&
-                        reaction.emoji.name === EMOJIS.CHECK &&
-                        reaction.message.id === message.id
-                })
-            )),
-            first(),
-            switchMap(() => this.participationForDiscordId(discordId)),
-            switchMap(() => handleSuccess(this.discord, message)),
             catchError(error => handleError(this.discord, message, error))
         )
     }
