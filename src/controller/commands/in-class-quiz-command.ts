@@ -38,8 +38,9 @@ export class InClassQuizCommand {
         }
         try {
             const quizName = args[0];
-            const maxParticipations = Number(args[1].trim());
-            const questions: QuizQuestion[] = args.slice(2).map((str, index) => {
+            const date = args[1];
+            const maxParticipations = Number(args[2].trim());
+            const questions: QuizQuestion[] = args.slice(3).map((str, index) => {
                 const fields = str.split('|');
                 return {
                     id: (index + 1).toString(),
@@ -55,7 +56,7 @@ export class InClassQuizCommand {
                         throw new QuizError('No students online to start the quiz!')
                     }
                 }),
-                tap(onlineStudents => onlineStudents.forEach(student => this.initQuizForDiscordId(message, quizName, student, questions, maxParticipations))),
+                tap(onlineStudents => onlineStudents.forEach(student => this.initQuizForDiscordId(message, quizName, date, student, questions, maxParticipations))),
                 switchMap(onlineStudents => this.discord.sendMessageToChannelId(
                     message.channel.id,
                     `Initializing Quiz for:\n${onlineStudents.map(s => this.discord.getNameForDiscordId(s)).join('\n')}`
@@ -68,7 +69,7 @@ export class InClassQuizCommand {
         }
     }
 
-    private initQuizForDiscordId(originalMessage: Message, quizName: string, discordId: string, questions: QuizQuestion[], maxParticipations: number) {
+    private initQuizForDiscordId(originalMessage: Message, quizName: string, date: string, discordId: string, questions: QuizQuestion[], maxParticipations: number) {
         let dmChannelId;
         let correctAnswers = 0;
         let participationsToAdd = 0;
@@ -138,7 +139,7 @@ export class InClassQuizCommand {
                 participationsToAdd = Math.ceil((correctAnswers / questions.length) * maxParticipations);
             }),
             switchMap(() => this.discord.sendMessageToChannelId(dmChannelId, `${DIVIDER}\nEl quiz terminó!\n**Tu score: ${correctAnswers}/${questions.length}**\nParticipaciones ganadas: ${participationsToAdd}\n${DIVIDER}`)),
-            switchMap(() => this.persistence.addMultipleParticipationForDiscordId(participationsToAdd, discordId, DateUtils.getTodayAsString())),
+            switchMap(() => this.persistence.addMultipleParticipationForDiscordId(participationsToAdd, discordId, date)),
             switchMap(() => participationsToAdd > 0 ?
                 this.discord.sendMessageToChannelId(dmChannelId, `${participationsToAdd} participaciones han sido agregadas para hoy! ${EMOJIS.CHECK}`) :
                 of(true)
