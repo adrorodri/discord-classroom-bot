@@ -132,7 +132,7 @@ export class DiscordController {
                         value: COMMANDS.HELP
                     },
                     {
-                        name: 'Para ver registrarte en la materia:',
+                        name: 'Para registrarte en la materia:',
                         value: `${COMMANDS.REGISTER} <CODIGO-UPB>`
                     }
                 ],
