@@ -22,16 +22,7 @@ export class GradesOfCommand {
                 private config: Config) {
     }
 
-    execute(message: Message, args: string[]): Observable<boolean> {
-        if (!args || !args.length) {
-            return throwError(new MessageWithoutContentError());
-        }
-        const discordId = args[0];
-
-        const fileName = `grades_report_${CommonUtils.getBasicStringFromString(this.discord.getNameForDiscordId(discordId))}_${Date.now()}.txt`;
-        const filePath = `${this.config.classes[0].code}_summary/${CommonUtils.getBasicStringFromString(this.discord.getNameForDiscordId(discordId))}`;
-        const fileMessage = `Summary report for ${this.discord.getNameForDiscordId(discordId)} ${new Date().toString()}`;
-
+    getGradesForDiscordId(discordId: string): Observable<string> {
         let totalActivitiesGradesByPartial: { [key: string]: string } = {};
         let totalParticipationGradesByPartial: { [key: string]: string } = {};
         return zip(this.persistence.getUser(discordId), this.persistence.getAllPreviousSessions(), this.persistence.getAllActivities()).pipe(
@@ -136,12 +127,26 @@ export class GradesOfCommand {
             }),
             map(resultTable => {
                 return this.table(resultTable, {hsep: '|'});
-            }),
+            })
+        );
+    }
+
+    execute(message: Message, args: string[]): Observable<boolean> {
+        if (!args || !args.length) {
+            return throwError(new MessageWithoutContentError());
+        }
+        const discordId = args[0];
+
+        const fileName = `grades_report_${CommonUtils.getBasicStringFromString(this.discord.getNameForDiscordId(discordId))}_${Date.now()}.txt`;
+        const filePath = `${this.config.classes[0].code}_summary/${CommonUtils.getBasicStringFromString(this.discord.getNameForDiscordId(discordId))}`;
+        const fileMessage = `Summary report for ${this.discord.getNameForDiscordId(discordId)} ${new Date().toString()}`;
+
+        return this.getGradesForDiscordId(discordId).pipe(
             switchMap(stringResponse => this.fileController.writeFile(filePath, fileName, stringResponse)),
             switchMap(() => this.fileController.readFile(filePath, fileName)),
             switchMap(buffer => this.discord.sendFileToChannelId(message.channel.id, fileMessage, buffer, fileName)),
             switchMap(() => handleSuccess(this.discord, message)),
             catchError(error => handleError(this.discord, message, error))
-        );
+        )
     }
 }

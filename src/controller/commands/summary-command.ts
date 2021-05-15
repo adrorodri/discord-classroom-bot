@@ -22,11 +22,7 @@ export class SummaryCommand {
                 private config: Config) {
     }
 
-    execute(message: Message, args: string[]): Observable<boolean> {
-        const fileName = `summary_report_${Date.now()}.txt`;
-        const filePath = `${this.config.classes[0].code}_summary`;
-        const fileMessage = `Summary report for ${new Date().toString()}`;
-
+    getGradesSummary(): Observable<string> {
         return forkJoin(this.persistence.getAllUsers(), this.persistence.getAllPreviousSessions(), this.persistence.getAllActivities()).pipe(
             map(([users, sessions, activities]) => {
                 const title = 'SUMMARY'
@@ -89,12 +85,21 @@ export class SummaryCommand {
             }),
             map(resultTable => {
                 return this.table(resultTable, {hsep: '|'});
-            }),
+            })
+        );
+    }
+
+    execute(message: Message, args: string[]): Observable<boolean> {
+        const fileName = `summary_report_${Date.now()}.txt`;
+        const filePath = `${this.config.classes[0].code}_summary`;
+        const fileMessage = `Summary report for ${new Date().toString()}`;
+
+        return this.getGradesSummary().pipe(
             switchMap(stringResponse => this.fileController.writeFile(filePath, fileName, stringResponse)),
             switchMap(() => this.fileController.readFile(filePath, fileName)),
             switchMap(buffer => this.discord.sendFileToChannelId(message.channel.id, fileMessage, buffer, fileName)),
             switchMap(() => handleSuccess(this.discord, message)),
             catchError(error => handleError(this.discord, message, error))
-        );
+        )
     }
 }

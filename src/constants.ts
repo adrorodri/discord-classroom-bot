@@ -13,6 +13,7 @@ export const COMMANDS = {
     MY_ABSENCES: '-mis-ausencias',
     MY_GRADES: '-mis-notas',
     GRADES_OF: '-grades-of',
+    EXPORT_REPORT: '-export-report',
     IN_CLASS_QUIZ: '-in-class-quiz',
     PRESENT_ACTIVITY: '-present-activity',
     TOPS_BOTTOMS: '-tops-bottoms',
@@ -21,7 +22,7 @@ export const COMMANDS = {
     TODAY: '-hoy',
     ABSENCES: '-ausencias',
     GRADES: '-notas',
-    HELP: '-help',
+    HELP: '-ayuda',
     TIME: '-time'
 }
 
@@ -31,12 +32,12 @@ export const TITLE_SPACER = '-- ';
 
 export const MESSAGES = {
     HELP_PUBLIC: 'Commands:' +
-        `\n\n ${COMMANDS.REGISTER} <Unviersity-Id> --> Registrarse en el bot` +
-        `\n ${COMMANDS.ATTENDANCE} <código> --> Registra tu asistencia (solo se permite al inicio del horario de clase)` +
+        `\n\n ${COMMANDS.REGISTER} <CODIGO-UPB> --> Registrarse en el bot` +
+        `\n ${COMMANDS.ATTENDANCE} <CODIGO> --> Registra tu asistencia (solo se permite al inicio del horario de clase)` +
         `\n ${COMMANDS.ACTIVITY} <mensaje, link o archivo adjunto> --> Registra la actividad del dia de hoy (valido hasta 23:59)` +
         `\n ${COMMANDS.PARTICIPATION} --> Registra una participacion (se valida por el docente)` +
         `\n ${COMMANDS.MY_ABSENCES} --> Te indica cuantas ausencias tienes acumuladas` +
-        `\n ${COMMANDS.MY_GRADES} --> Te indica la calificacion de cada actividad presentada` +
+        `\n ${COMMANDS.MY_GRADES} --> Te muestra un resumen de tus calificaciones` +
         `\n ${COMMANDS.TODAY} --> Devuelve un mensaje con la informacion de la sesion y actividad del dia de hoy` +
         `\n ${COMMANDS.HELP} --> Muestra este mensaje de ayuda`,
 

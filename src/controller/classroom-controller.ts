@@ -34,6 +34,7 @@ import {GradesController} from "./grades-controller";
 import {ManualExamGradeCommand} from "./commands/manual-exam-grade-command";
 import {FileController} from "./file-controller";
 import {InClassQuizCommand} from "./commands/in-class-quiz-command";
+import {ExportReportCommand} from "./commands/export-report-command";
 
 export class ClassroomController {
     private isUnderMaintenance = false;
@@ -63,6 +64,7 @@ export class ClassroomController {
     private summaryCommand = new SummaryCommand(this.persistence, this.fileController, this.discord, this.grades, this.config);
     private myAbsencesCommand = new MyAbsencesCommand(this.persistence, this.discord, this.config);
     private gradesOfCommand = new GradesOfCommand(this.persistence, this.fileController, this.discord, this.grades, this.config);
+    private exportReportCommand = new ExportReportCommand(this.persistence, this.fileController, this.discord, this.grades, this.summaryCommand, this.gradesOfCommand, this.config);
     private whoisCommand = new WhoisCommand(this.persistence, this.discord, this.config);
     private inClassQuizCommand = new InClassQuizCommand(this.persistence, this.discord, this.grades, this.config);
 
@@ -221,6 +223,8 @@ export class ClassroomController {
             return this.whoisCommand.execute(message, args);
         } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.GRADES_OF)) {
             return this.gradesOfCommand.execute(message, args);
+        } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.EXPORT_REPORT)) {
+            return this.exportReportCommand.execute(message, args);
         } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.IN_CLASS_QUIZ)) {
             return this.inClassQuizCommand.execute(message, args);
         } else {

@@ -22,8 +22,8 @@ export class RegisterCommand {
                     switchMap(() => this.discord.sendEmbedMessageToChannelId(channelId, COLORS.INFO,
                         'Para completar tu registro a la materia, llena el siguiente formulario:', [
                             {
-                                name: 'Formulario Registro y Diagnóstico - 2021',
-                                value: 'https://forms.gle/cJoshUh38gBCXraZ8'
+                                name: 'Formulario Registro y Diagnóstic0 - Mayo 2021',
+                                value: 'https://forms.gle/nBvyPNFnvMUciWXV9'
                             }
                         ]))
                 )),

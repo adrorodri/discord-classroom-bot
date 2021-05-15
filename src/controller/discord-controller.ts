@@ -16,7 +16,7 @@ import {delay, mapTo, switchMap} from "rxjs/operators";
 import {InvalidUserStatusError} from "../errors/invalid-user-status.error";
 import {Config} from "../model/config";
 import {NotRegisteredError} from "../errors/not-registered.error";
-import {COLORS} from "../constants";
+import {COLORS, COMMANDS, EMOJIS} from "../constants";
 import {Logger} from "../utils/logger";
 
 export class DiscordController {
@@ -71,6 +71,9 @@ export class DiscordController {
         });
 
         this.client.on('guildMemberAdd', async (guild, member) => {
+            if (member.bot) {
+                return;
+            }
             await this.updateMemberDMChannel(member);
             await this.sendWelcomeMessageToUser(member);
         });
@@ -116,16 +119,21 @@ export class DiscordController {
         const dmChannel = await this.client.getDMChannel(member.id);
         const embedMessage: MessageContent = {
             embed: {
-                title: "Bienvenido a Programacion 3!",
-                description: "Soy el bot de la clase, te ayudaré con las asistencias y tus participaciones\n\n" +
-                    "Para comenzar, manda el comando: \n" +
-                    "-register <CODIGO-UPB>      (Por ejemplo, -register 12345)",
+                title: `Bienvenid@ a Programacion 3! ${EMOJIS.CHECK}`,
+                description: `Soy el bot de la clase, te ayudaré con tus asistencias, tus participaciones y mucho mas!\n\n` +
+                    `Puedes explorar los comandos disponibles enviándome el comando -ayuda\n\n\n` +
+                    `Para comenzar, debes registrarte conmigo, simplemente mándame el comando: \n` +
+                    `-registrar <CODIGO-UPB>\n\nPor ejemplo:\n-registrar 12345`,
                 color: COLORS.SUCCESS,
                 timestamp: new Date(),
                 fields: [
                     {
                         name: 'Para ver la lista de comandos disponibles:',
-                        value: '-help'
+                        value: COMMANDS.HELP
+                    },
+                    {
+                        name: 'Para ver registrarte en la materia:',
+                        value: `${COMMANDS.REGISTER} <CODIGO-UPB>`
                     }
                 ],
             }
