@@ -20,7 +20,7 @@ export class SendRandomMessageToStudentsCommand {
             return throwError(new MessageWithoutContentError());
         }
         try {
-            return of(this.discord.getOnlineStudents(this.config)).pipe(
+            return of(this.discord.getOnlineStudents(this.config).filter(studentId => studentId !== this.config.teacher.discordId)).pipe(
                 tap(onlineStudents => {
                     if (!onlineStudents.length) {
                         throw new QuizError('No students online to send messages!')
