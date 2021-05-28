@@ -17,6 +17,7 @@ export const COMMANDS = {
     IN_CLASS_QUIZ: '-in-class-quiz',
     PRESENT_ACTIVITY: '-present-activity',
     TOPS_BOTTOMS: '-tops-bottoms',
+    SEND_RANDOM: '-send-random',
     WHOIS: '-whois',
     SUMMARY: '-summary',
     TODAY: '-hoy',

@@ -3,7 +3,7 @@ import {Observable, throwError, zip} from "rxjs";
 import {PersistenceController} from "../persistence-controller";
 import {handleError, handleSuccess} from "./common-handlers";
 import {DiscordController} from "../discord-controller";
-import {Message} from "eris";
+import {Message, PossiblyUncachedTextableChannel} from "eris";
 import {Config} from "../../model/config";
 import {MessageWithoutContentError} from "../../errors/message-without-content.error";
 import {DIVIDER, EMPTY, TITLE_SPACER} from "../../constants";
@@ -131,7 +131,7 @@ export class GradesOfCommand {
         );
     }
 
-    execute(message: Message, args: string[]): Observable<boolean> {
+    execute(message: Message<PossiblyUncachedTextableChannel>, args: string[]): Observable<boolean> {
         if (!args || !args.length) {
             return throwError(new MessageWithoutContentError());
         }

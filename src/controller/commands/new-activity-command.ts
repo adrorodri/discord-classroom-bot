@@ -3,7 +3,7 @@ import {EMPTY, Observable, of, throwError} from "rxjs";
 import {PersistenceController} from "../persistence-controller";
 import {handleError, handleSuccess, validateAuthorIsAdmin} from "./common-handlers";
 import {DiscordController} from "../discord-controller";
-import {Message} from "eris";
+import {Message, PossiblyUncachedTextableChannel} from "eris";
 import {COLORS} from "../../constants";
 import {Activity} from "../../model/activity";
 import {Resource} from "../../model/session";
@@ -13,7 +13,7 @@ export class NewActivityCommand {
     constructor(private persistence: PersistenceController, private discord: DiscordController, private config: Config) {
     }
 
-    execute(message: Message, args: string[]): Observable<boolean> {
+    execute(message: Message<PossiblyUncachedTextableChannel>, args: string[]): Observable<boolean> {
         const date = args[0];
         const name = args[1];
         const resources = args.slice(2);

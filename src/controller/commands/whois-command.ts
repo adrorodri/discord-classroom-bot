@@ -3,7 +3,7 @@ import {Observable, throwError} from "rxjs";
 import {PersistenceController} from "../persistence-controller";
 import {handleError, handleSuccess} from "./common-handlers";
 import {DiscordController} from "../discord-controller";
-import {Message} from "eris";
+import {Message, PossiblyUncachedTextableChannel} from "eris";
 import {Config} from "../../model/config";
 import {MessageWithoutContentError} from "../../errors/message-without-content.error";
 
@@ -11,7 +11,7 @@ export class WhoisCommand {
     constructor(private persistence: PersistenceController, private discord: DiscordController, private config: Config) {
     }
 
-    execute(message: Message, args: string[]): Observable<boolean> {
+    execute(message: Message<PossiblyUncachedTextableChannel>, args: string[]): Observable<boolean> {
         if (!args.length) {
             return throwError(new MessageWithoutContentError());
         }

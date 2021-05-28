@@ -15,7 +15,7 @@ import {interval, Observable, of, throwError, TimeoutError} from "rxjs";
 import {PersistenceController} from "../persistence-controller";
 import {handleError, handleSuccess} from "./common-handlers";
 import {DiscordController} from "../discord-controller";
-import {Message} from "eris";
+import {Message, PossiblyUncachedTextableChannel} from "eris";
 import {Config} from "../../model/config";
 import {MessageWithoutContentError} from "../../errors/message-without-content.error";
 import {GradesController} from "../grades-controller";
@@ -32,7 +32,7 @@ export class InClassQuizCommand {
                 private config: Config) {
     }
 
-    execute(message: Message, args: string[]): Observable<boolean> {
+    execute(message: Message<PossiblyUncachedTextableChannel>, args: string[]): Observable<boolean> {
         if (!args || !args.length) {
             return throwError(new MessageWithoutContentError());
         }
@@ -69,7 +69,7 @@ export class InClassQuizCommand {
         }
     }
 
-    private initQuizForDiscordId(originalMessage: Message, quizName: string, date: string, discordId: string, questions: QuizQuestion[], maxParticipations: number) {
+    private initQuizForDiscordId(originalMessage: Message<PossiblyUncachedTextableChannel>, quizName: string, date: string, discordId: string, questions: QuizQuestion[], maxParticipations: number) {
         let dmChannelId;
         let correctAnswers = 0;
         let participationsToAdd = 0;

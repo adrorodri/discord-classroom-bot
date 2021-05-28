@@ -1,4 +1,4 @@
-import {Message, PrivateChannel} from "eris";
+import {Message, PossiblyUncachedTextableChannel, PrivateChannel} from "eris";
 import {EMPTY, Observable, of} from "rxjs";
 import {COMMANDS, EMOJIS} from "../constants";
 import {catchError, filter, switchMap} from "rxjs/operators";
@@ -35,6 +35,7 @@ import {ManualExamGradeCommand} from "./commands/manual-exam-grade-command";
 import {FileController} from "./file-controller";
 import {InClassQuizCommand} from "./commands/in-class-quiz-command";
 import {ExportReportCommand} from "./commands/export-report-command";
+import {SendRandomMessageToStudentsCommand} from "./commands/send-random-message-to-students-command";
 
 export class ClassroomController {
     private isUnderMaintenance = false;
@@ -67,6 +68,7 @@ export class ClassroomController {
     private exportReportCommand = new ExportReportCommand(this.persistence, this.fileController, this.discord, this.grades, this.summaryCommand, this.gradesOfCommand, this.config);
     private whoisCommand = new WhoisCommand(this.persistence, this.discord, this.config);
     private inClassQuizCommand = new InClassQuizCommand(this.persistence, this.discord, this.grades, this.config);
+    private sendRandom = new SendRandomMessageToStudentsCommand(this.persistence, this.discord, this.config);
 
     constructor(private config: Config, private discord: DiscordController, private grades: GradesController) {
         // Class information at start / end
@@ -147,7 +149,7 @@ export class ClassroomController {
         ).subscribe();
     }
 
-    processMessage(message: Message): Observable<any> {
+    processMessage(message: Message<PossiblyUncachedTextableChannel>): Observable<any> {
         const isCommand = (content: string): boolean => {
             return content.startsWith('-') && !!content.split('-')[1].trim();
         }
@@ -217,6 +219,8 @@ export class ClassroomController {
             return this.manualExamGradeCommand.execute(message, args);
         } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.TOPS_BOTTOMS)) {
             return this.topsBottomsCommand.execute(message, args);
+        } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.SEND_RANDOM)) {
+            return this.sendRandom.execute(message, args);
         } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.SUMMARY)) {
             return this.summaryCommand.execute(message, args);
         } else if (isAuthorAdmin(this.config, discordId) && isPrivate() && isValidCommand(COMMANDS.WHOIS)) {

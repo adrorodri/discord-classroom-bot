@@ -3,7 +3,7 @@ import {Observable, of, throwError} from "rxjs";
 import {PersistenceController} from "../persistence-controller";
 import {handleError, handleSuccess} from "./common-handlers";
 import {DiscordController} from "../discord-controller";
-import {Attachment, Message} from "eris";
+import {Attachment, Message, PossiblyUncachedTextableChannel} from "eris";
 import {Config} from "../../model/config";
 import {DateUtils} from "../../utils/date-utils";
 import {COLORS} from "../../constants";
@@ -15,7 +15,7 @@ export class ActivityCommand {
     constructor(private persistence: PersistenceController, private discord: DiscordController, private config: Config) {
     }
 
-    execute(message: Message, args: string[]): Observable<boolean> {
+    execute(message: Message<PossiblyUncachedTextableChannel>, args: string[]): Observable<boolean> {
         const today = DateUtils.getTodayAsString();
         const hasAttachments = message.attachments.length;
         const attachments = message.attachments;

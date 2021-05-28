@@ -3,7 +3,7 @@ import {Observable} from "rxjs";
 import {PersistenceController} from "../persistence-controller";
 import {handleError, handleSuccess, validateAuthorIsAdmin} from "./common-handlers";
 import {DiscordController} from "../discord-controller";
-import {Message} from "eris";
+import {Message, PossiblyUncachedTextableChannel} from "eris";
 import {Resource, Session} from "../../model/session";
 import {Config} from "../../model/config";
 import {DateUtils} from "../../utils/date-utils";
@@ -12,7 +12,7 @@ export class NewSessionCommand {
     constructor(private persistence: PersistenceController, private discord: DiscordController, private config: Config) {
     }
 
-    execute(message: Message, args: string[]): Observable<boolean> {
+    execute(message: Message<PossiblyUncachedTextableChannel>, args: string[]): Observable<boolean> {
         const date = args[0] === 'today' ? DateUtils.getTodayAsString() : args[0];
         const name = args[1];
         const resources = args.slice(2);

@@ -3,7 +3,7 @@ import {FileController} from "../file-controller";
 import {DiscordController} from "../discord-controller";
 import {GradesController} from "../grades-controller";
 import {Config} from "../../model/config";
-import {Message} from "eris";
+import {Message, PossiblyUncachedTextableChannel} from "eris";
 import {Observable, zip} from "rxjs";
 import {catchError, concatMap, flatMap, map, switchMap, toArray} from "rxjs/operators";
 import {GradesOfCommand} from "./grades-of-command";
@@ -21,7 +21,7 @@ export class ExportReportCommand {
                 private config: Config) {
     }
 
-    execute(message: Message, args: string[]): Observable<boolean> {
+    execute(message: Message<PossiblyUncachedTextableChannel>, args: string[]): Observable<boolean> {
         const fileName = `grades_report_export_${Date.now()}.txt`;
         const filePath = `${this.config.classes[0].code}_summary/exports`;
         const fileMessage = `Summary report to date ${new Date().toString()}`;

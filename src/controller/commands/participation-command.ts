@@ -1,7 +1,7 @@
 import {PersistenceController} from "../persistence-controller";
 import {DiscordController} from "../discord-controller";
 import {Config} from "../../model/config";
-import {Message} from "eris";
+import {Message, PossiblyUncachedTextableChannel} from "eris";
 import {Observable, of, throwError} from "rxjs";
 import {catchError, filter, first, switchMap} from "rxjs/operators";
 import {handleError, handleSuccess} from "./common-handlers";
@@ -15,7 +15,7 @@ export class ParticipationCommand {
                 private config: Config) {
     }
 
-    execute(message: Message, args: string[]): Observable<boolean> {
+    execute(message: Message<PossiblyUncachedTextableChannel>, args: string[]): Observable<boolean> {
         const discordId = message.author.id;
         return this.validateCurrentTime(this.config.classes[0].start_time, this.config.classes[0].end_time).pipe(
             switchMap(() => this.validateUserStatus(discordId, this.config.guildId)),

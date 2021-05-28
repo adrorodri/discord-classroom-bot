@@ -3,7 +3,7 @@ import {Observable, of, throwError} from "rxjs";
 import {PersistenceController} from "../persistence-controller";
 import {handleError, handleSuccess} from "./common-handlers";
 import {DiscordController} from "../discord-controller";
-import {Attachment, Message} from "eris";
+import {Attachment, Message, PossiblyUncachedTextableChannel} from "eris";
 import {DateUtils} from "../../utils/date-utils";
 import {AttendanceInvalidError} from "../../errors/attendance-invalid.error";
 import {Config} from "../../model/config";
@@ -16,7 +16,7 @@ export class AttendanceCommand {
                 private config: Config) {
     }
 
-    execute(message: Message, args: string[] = []): Observable<boolean> {
+    execute(message: Message<PossiblyUncachedTextableChannel>, args: string[] = []): Observable<boolean> {
         const discordId = message.author.id;
         const attendanceCode = args[0];
         const today = DateUtils.getTodayAsString();

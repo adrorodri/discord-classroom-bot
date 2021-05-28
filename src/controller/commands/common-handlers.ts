@@ -2,15 +2,15 @@ import {Observable, of, throwError} from "rxjs";
 import {switchMap} from "rxjs/operators";
 import {EMOJIS} from "../../constants";
 import {DiscordController} from "../discord-controller";
-import {Message} from "eris";
+import {Message, PossiblyUncachedTextableChannel} from "eris";
 import {UnauthorizedError} from "../../errors/unauthorized.error";
 import {Config} from "../../model/config";
 
-export const handleSuccess = (discord: DiscordController, message: Message, emoji: string = EMOJIS.CHECK): Observable<any> => {
+export const handleSuccess = (discord: DiscordController, message: Message<PossiblyUncachedTextableChannel>, emoji: string = EMOJIS.CHECK): Observable<any> => {
     return discord.sendReactionToMessage(message, emoji)
 }
 
-export const handleError = (discord: DiscordController, message: Message, error): Observable<any> => {
+export const handleError = (discord: DiscordController, message: Message<PossiblyUncachedTextableChannel>, error): Observable<any> => {
     console.warn('Operation Error', error.message);
     return discord.sendErrorMessage(message, error).pipe(
         switchMap(() => discord.sendReactionToMessage(message, EMOJIS.ERROR))

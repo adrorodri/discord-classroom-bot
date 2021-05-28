@@ -3,7 +3,7 @@ import {forkJoin, Observable} from "rxjs";
 import {PersistenceController} from "../persistence-controller";
 import {handleError, handleSuccess} from "./common-handlers";
 import {DiscordController} from "../discord-controller";
-import {Message} from "eris";
+import {Message, PossiblyUncachedTextableChannel} from "eris";
 import {Config} from "../../model/config";
 import {CommonUtils} from "../../utils/common-utils";
 import {Student} from "../../model/student";
@@ -89,7 +89,7 @@ export class SummaryCommand {
         );
     }
 
-    execute(message: Message, args: string[]): Observable<boolean> {
+    execute(message: Message<PossiblyUncachedTextableChannel>, args: string[]): Observable<boolean> {
         const fileName = `summary_report_${Date.now()}.txt`;
         const filePath = `${this.config.classes[0].code}_summary`;
         const fileMessage = `Summary report for ${new Date().toString()}`;

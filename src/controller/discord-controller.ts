@@ -5,8 +5,8 @@ import {
     Emoji,
     Member,
     Message,
-    MessageContent,
-    PossiblyUncachedMessage,
+    MessageContent, PartialEmoji,
+    PossiblyUncachedMessage, PossiblyUncachedTextableChannel,
     Relationship,
     TextableChannel,
     VoiceChannel
@@ -21,8 +21,8 @@ import {Logger} from "../utils/logger";
 
 export class DiscordController {
     private client: eris.Client;
-    private messagesSubject: Subject<Message> = new Subject<Message>();
-    private reactionsSubject: Subject<{ message: PossiblyUncachedMessage, emoji: Emoji, member: Member | { id: string } }> = new Subject();
+    private messagesSubject: Subject<Message<PossiblyUncachedTextableChannel>> = new Subject<Message<PossiblyUncachedTextableChannel>>();
+    private reactionsSubject: Subject<{ message: PossiblyUncachedMessage, emoji: PartialEmoji, member: Member | { id: string } }> = new Subject();
     private membersStatus: Map<string, boolean> = new Map<string, boolean>();
     private memberNames: Map<string, string> = new Map<string, string>();
     private privateDMChannels: Map<string, string> = new Map<string, string>();
@@ -145,11 +145,11 @@ export class DiscordController {
         return fromPromise(this.client.connect());
     }
 
-    public subscribeToMessages(): Observable<Message> {
+    public subscribeToMessages(): Observable<Message<PossiblyUncachedTextableChannel>> {
         return this.messagesSubject;
     }
 
-    public subscribeToReactions(): Observable<{ message: PossiblyUncachedMessage, emoji: Emoji, member: Member | { id: string } }> {
+    public subscribeToReactions(): Observable<{ message: PossiblyUncachedMessage, emoji: PartialEmoji, member: Member | { id: string } }> {
         return this.reactionsSubject;
     }
 
@@ -161,8 +161,8 @@ export class DiscordController {
         return this.client.getChannel(channelId).mention
     }
 
-    public sendMessageToChannel(channel: TextableChannel, message: string): Observable<Message> {
-        return fromPromise(channel.createMessage(message));
+    public sendMessageToChannel(channel: PossiblyUncachedTextableChannel, message: string): Observable<Message> {
+        return fromPromise(this.client.createMessage(channel.id, message));
     }
 
     public sendMessageToChannelId(channelId: string, message: string): Observable<Message> {
@@ -195,8 +195,8 @@ export class DiscordController {
         );
     }
 
-    public sendReactionToMessage(message: Message, emoji: string): Observable<Message> {
-        return fromPromise(message.channel.addMessageReaction(message.id, emoji)).pipe(mapTo(message));
+    public sendReactionToMessage(message: Message<PossiblyUncachedTextableChannel>, emoji: string): Observable<Message<PossiblyUncachedTextableChannel>> {
+        return fromPromise(this.client.addMessageReaction(message.channel.id, message.id, emoji)).pipe(mapTo(message));
     }
 
     public sendReactionsToMessage(message: Message, emojis: string[]): Observable<Message> {
@@ -205,8 +205,8 @@ export class DiscordController {
         }, Promise.resolve())).pipe(mapTo(message));
     }
 
-    sendErrorMessage(message: Message, error: any) {
-        return fromPromise(message.channel.createMessage(error.toString()));
+    sendErrorMessage(message: Message<PossiblyUncachedTextableChannel>, error: any) {
+        return fromPromise(this.client.createMessage(message.channel.id, error.toString()));
     }
 
     getDMChannelForDiscordId(discordId: string): Observable<string> {

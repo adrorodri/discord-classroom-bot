@@ -1,7 +1,7 @@
 import {PersistenceController} from "../persistence-controller";
 import {DiscordController} from "../discord-controller";
 import {Config} from "../../model/config";
-import {Message} from "eris";
+import {Message, PossiblyUncachedTextableChannel} from "eris";
 import {Observable, throwError} from "rxjs";
 import {catchError, switchMap} from "rxjs/operators";
 import {handleError, handleSuccess} from "./common-handlers";
@@ -14,7 +14,7 @@ export class ManualAttendanceCommand {
                 private config: Config) {
     }
 
-    execute(message: Message, args: string[]): Observable<boolean> {
+    execute(message: Message<PossiblyUncachedTextableChannel>, args: string[]): Observable<boolean> {
         if (!args.length || args.length < 2) {
             return throwError(new MessageWithoutContentError())
         }
