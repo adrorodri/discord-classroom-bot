@@ -36,6 +36,7 @@ import {FileController} from "./file-controller";
 import {InClassQuizCommand} from "./commands/in-class-quiz-command";
 import {ExportReportCommand} from "./commands/export-report-command";
 import {SendRandomMessageToStudentsCommand} from "./commands/send-random-message-to-students-command";
+import {PresenceUtils} from "../utils/presence-utils";
 
 export class ClassroomController {
     private isUnderMaintenance = false;
@@ -79,6 +80,15 @@ export class ClassroomController {
                 ))
             ).subscribe(() => {
             }, handleErrorWithoutMessage);
+            this.discord.getStudentsStatus().forEach( (value, key) => {
+                this.persistence.updatePresenceForDiscordId(
+                  key,
+                  PresenceUtils.getPresenceFromClientStatus(value))
+                  .pipe(
+                    catchError(() => of(true)),
+                  ).subscribe(() => {
+                }, handleErrorWithoutMessage);
+            });
         });
         this.cron.addTask(CronController.getCronTimeForHourMinute(this.config.classes[0].end_time), () => {
             this.sendClassNotifications.sendEndClass().subscribe(() => {
@@ -124,6 +134,17 @@ export class ClassroomController {
             ))
         ).subscribe();
 
+        this.discord.subscribeToPresence().pipe(
+          filter(member => member.id !== this.config.teacher.discordId),
+          filter(() => DateUtils.isBetweenTimes(this.config.classes[0].start_time, this.config.classes[0].end_time)),
+          switchMap(member => this.persistence.updatePresenceForDiscordId(
+            member.id,
+            PresenceUtils.getPresenceFromClientStatus(member.clientStatus))
+            .pipe(
+              catchError(() => of(true)),
+            )),
+        ).subscribe();
+
         // Reactions as grade commands
         this.discord.subscribeToReactions().pipe(
             filter(reaction => {
@@ -147,6 +168,21 @@ export class ClassroomController {
                 return of(true)
             })
         ).subscribe();
+
+        this.discord.onInitialized.then((members) => {
+            members.forEach((value, key) => {
+                if (key !== this.config.teacher.discordId) {
+                    this.persistence.updateNameForDiscordId(
+                      key,
+                      value).pipe(
+                        catchError(error => {
+                            handleErrorWithoutMessage(error)
+                            return of(true)
+                        })
+                    ).subscribe()
+                }
+            })
+        }).catch(error => handleErrorWithoutMessage(error))
     }
 
     processMessage(message: Message<PossiblyUncachedTextableChannel>): Observable<any> {

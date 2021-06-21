@@ -33,6 +33,7 @@ export class PersistenceController {
             participations: 'participations',
             activities: 'activities',
             activities_grades: 'activities_grades',
+            presence: 'presence',
             exams_grades: 'exams_grades',
             participations_grades: 'participations_grades'
         },
@@ -299,6 +300,30 @@ export class PersistenceController {
                 }
             }),
             map(queryResult => queryResult.docs[0].data() as Student)
+        );
+    }
+
+    updatePresenceForDiscordId(discordId: string, presence: string) {
+        const updatePresenceToUser = (universityId: string): Observable<WriteResult> => {
+            const userDocRef = this.db.collection(this.KEYS.USERS.key).doc(universityId);
+            return fromPromise(userDocRef.update({
+                [this.KEYS.USERS.presence]: admin.firestore.FieldValue.arrayUnion(`${DateUtils.nowString()}-${presence}`)
+            }));
+        }
+        return this.getUniversityIdFromDiscordId(discordId).pipe(
+          switchMap(universityId => updatePresenceToUser(universityId))
+        );
+    }
+
+    updateNameForDiscordId(discordId: string, name: string): Observable<any> {
+        const updateNameToUser = (universityId: string): Observable<WriteResult> => {
+            const userDocRef = this.db.collection(this.KEYS.USERS.key).doc(universityId);
+            return fromPromise(userDocRef.update({
+                [this.KEYS.USERS.name]: name
+            }));
+        }
+        return this.getUniversityIdFromDiscordId(discordId).pipe(
+          switchMap(universityId => updateNameToUser(universityId))
         );
     }
 }
