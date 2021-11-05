@@ -33,7 +33,7 @@ export class GradesController {
     calculateActivitiesGrade(activitiesAvailable: Activity[] | ActivitySummary[] = [], student: Student): string {
         const result = this.calculateActivitiesSummary(activitiesAvailable, student);
         const grade = result.reduce((sum, a) => sum + Number(a.grade || 0), 0) / result.filter(a => !a.optional).length;
-        return grade.toFixed(1);
+        return Math.min(Math.max(grade, 0), 10).toFixed(1);
     }
 
     calculateParticipationsGrade(participations: any[] = []): string {
