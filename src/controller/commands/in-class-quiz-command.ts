@@ -136,7 +136,7 @@ export class InClassQuizCommand {
             }),
             toArray(),
             tap(() => {
-                participationsToAdd = Math.ceil((correctAnswers / questions.length) * maxParticipations);
+                participationsToAdd = Math.round((correctAnswers / questions.length) * maxParticipations);
             }),
             switchMap(() => this.discord.sendMessageToChannelId(dmChannelId, `${DIVIDER}\nEl quiz terminó!\n**Tu score: ${correctAnswers}/${questions.length}**\nParticipaciones ganadas: ${participationsToAdd}\n${DIVIDER}`)),
             switchMap(() => this.persistence.addMultipleParticipationForDiscordId(participationsToAdd, discordId, date)),
